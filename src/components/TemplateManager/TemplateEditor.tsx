@@ -4,8 +4,8 @@ import { Template } from '../../types'
 import {
   saveTemplate,
   canAddMoreTemplates,
-  getTemplates,
 } from '../../utils/templateStorage'
+import { isBuiltinTemplate } from '../../utils/builtinTemplates'
 
 const { TextArea } = Input
 
@@ -44,6 +44,13 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields()
+      
+      // 检查是否为内置模版
+      if (template && isBuiltinTemplate(template.id)) {
+        message.warning('系统模版不能编辑')
+        return
+      }
+
       setLoading(true)
 
       const newTemplate: Template = {

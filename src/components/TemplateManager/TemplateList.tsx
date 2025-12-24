@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Table, Button, Space, Tag, message, Popconfirm } from 'antd'
 import { DeleteOutlined, StarOutlined, StarFilled, EditOutlined } from '@ant-design/icons'
 import { Template } from '../../types'
@@ -7,6 +7,7 @@ import {
   deleteTemplate,
   setDefaultTemplate,
 } from '../../utils/templateStorage'
+import { isBuiltinTemplate } from '../../utils/builtinTemplates'
 
 interface TemplateListProps {
   onEdit: (template: Template) => void
@@ -14,9 +15,38 @@ interface TemplateListProps {
 }
 
 const TemplateList: React.FC<TemplateListProps> = ({ onEdit, onRefresh }) => {
-  const templates = getTemplates()
+  const [templates, setTemplates] = useState<Template[]>(getTemplates())
+
+  // 监听模版变化
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newTemplates = getTemplates()
+      setTemplates(newTemplates)
+    }
+
+    // 立即更新一次
+    handleStorageChange()
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('templatesUpdated', handleStorageChange)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('templatesUpdated', handleStorageChange)
+    }
+  }, [])
+
+  // 当 onRefresh 被调用时更新列表
+  useEffect(() => {
+    const newTemplates = getTemplates()
+    setTemplates(newTemplates)
+  }, [onRefresh])
 
   const handleDelete = (id: string) => {
+    if (isBuiltinTemplate(id)) {
+      message.warning('系统模版不能删除')
+      return
+    }
     if (deleteTemplate(id)) {
       message.success('删除成功')
       onRefresh()
@@ -43,6 +73,14 @@ const TemplateList: React.FC<TemplateListProps> = ({ onEdit, onRefresh }) => {
       title: '模版名称',
       dataIndex: 'name',
       key: 'name',
+      render: (name: string, record: Template) => (
+        <Space>
+          <span>{name}</span>
+          {isBuiltinTemplate(record.id) && (
+            <Tag color="blue">系统模版</Tag>
+          )}
+        </Space>
+      ),
     },
     {
       title: '默认模版',
@@ -76,36 +114,43 @@ const TemplateList: React.FC<TemplateListProps> = ({ onEdit, onRefresh }) => {
       title: '操作',
       key: 'action',
       width: 200,
-      render: (_: any, record: Template) => (
-        <Space>
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => onEdit(record)}
-          >
-            编辑
-          </Button>
-          {!record.isDefault && (
-            <Button
-              type="link"
-              icon={<StarOutlined />}
-              onClick={() => handleSetDefault(record.id)}
-            >
-              设为默认
-            </Button>
-          )}
-          <Popconfirm
-            title="确定要删除这个模版吗？"
-            onConfirm={() => handleDelete(record.id)}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button type="link" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
+      render: (_: any, record: Template) => {
+        const isBuiltin = isBuiltinTemplate(record.id)
+        return (
+          <Space>
+            {!isBuiltin && (
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => onEdit(record)}
+              >
+                编辑
+              </Button>
+            )}
+            {!record.isDefault && (
+              <Button
+                type="link"
+                icon={<StarOutlined />}
+                onClick={() => handleSetDefault(record.id)}
+              >
+                设为默认
+              </Button>
+            )}
+            {!isBuiltin && (
+              <Popconfirm
+                title="确定要删除这个模版吗？"
+                onConfirm={() => handleDelete(record.id)}
+                okText="确定"
+                cancelText="取消"
+              >
+                <Button type="link" danger icon={<DeleteOutlined />}>
+                  删除
+                </Button>
+              </Popconfirm>
+            )}
+          </Space>
+        )
+      },
     },
   ]
 

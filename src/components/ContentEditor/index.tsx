@@ -58,7 +58,7 @@ const ContentEditor: React.FC = () => {
     } else {
       setCurrentStyle('')
     }
-  }, [selectedTemplateId])
+  }, [selectedTemplateId, templates])
 
 
   // 处理样式变化（添加作用域）
@@ -137,10 +137,21 @@ const ContentEditor: React.FC = () => {
       // 更新模版列表
       const newTemplates = getTemplates()
       setTemplates(newTemplates)
-      // 自动选中新创建的模版
-      setSelectedTemplateId(newTemplate.id)
       // 触发更新事件
       window.dispatchEvent(new Event('templatesUpdated'))
+      // 延迟选中新创建的模版，确保模版已保存到 localStorage
+      setTimeout(() => {
+        // 重新获取模版列表，确保包含新保存的模版
+        const updatedTemplates = getTemplates()
+        setTemplates(updatedTemplates)
+        // 选中新创建的模版
+        setSelectedTemplateId(newTemplate.id)
+        // 立即更新样式
+        const savedTemplate = getTemplateById(newTemplate.id)
+        if (savedTemplate && savedTemplate.css) {
+          setCurrentStyle(savedTemplate.css)
+        }
+      }, 50)
     } else {
       message.error('模版保存失败')
     }
@@ -215,65 +226,66 @@ const ContentEditor: React.FC = () => {
           >
             模版管理
           </Button>
-          {selectedTemplateId && (
-            <>
-              <Dropdown
-                menu={{
-                  items: templates.map(t => ({
-                    key: t.id,
-                    label: (
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: 8,
-                        padding: '4px 0'
-                      }}>
-                        <span
-                          style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            backgroundColor: t.id === selectedTemplateId ? 'var(--emerald-primary)' : '#d1d5db',
-                            display: 'inline-block',
-                            flexShrink: 0
-                          }}
-                        />
-                        <span style={{ flex: 1 }}>{t.name}</span>
-                        {t.isDefault && (
-                          <span style={{ fontSize: 12, color: '#999' }}>(默认)</span>
-                        )}
-                      </div>
-                    ),
-                    onClick: () => setSelectedTemplateId(t.id)
-                  })),
-                  style: { minWidth: 180 }
-                }}
-                trigger={['click']}
-              >
-                <Button 
-                  size="small" 
-                  type="text" 
-                  style={{ 
-                    padding: '4px 8px',
-                    height: 'auto',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4
-                  }}
-                >
-                  {(() => {
+          <Dropdown
+            menu={{
+              items: templates.map(t => ({
+                key: t.id,
+                label: (
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 8,
+                    padding: '4px 0'
+                  }}>
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        backgroundColor: t.id === selectedTemplateId ? 'var(--emerald-primary)' : '#d1d5db',
+                        display: 'inline-block',
+                        flexShrink: 0
+                      }}
+                    />
+                    <span style={{ flex: 1 }}>{t.name}</span>
+                    {t.isDefault && (
+                      <span style={{ fontSize: 12, color: '#999' }}>(默认)</span>
+                    )}
+                  </div>
+                ),
+                onClick: () => setSelectedTemplateId(t.id)
+              })),
+              style: { minWidth: 180 }
+            }}
+            trigger={['click']}
+          >
+            <Button 
+              size="small" 
+              type="text" 
+              style={{ 
+                padding: '4px 8px',
+                height: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                color: selectedTemplateId ? 'var(--emerald-primary)' : '#666',
+                fontWeight: selectedTemplateId ? 500 : 400
+              }}
+            >
+              {selectedTemplateId 
+                ? (() => {
                     const template = templates.find(t => t.id === selectedTemplateId)
                     return template ? (
                       <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         {template.name}
                       </span>
-                    ) : null
-                  })()}
-                  <DownOutlined style={{ fontSize: 10 }} />
-                </Button>
-              </Dropdown>
-            </>
-          )}
+                    ) : '选择模版'
+                  })()
+                : '选择模版'
+              }
+              <DownOutlined style={{ fontSize: 10 }} />
+            </Button>
+          </Dropdown>
         </Space>
         <Space>
           <Button
