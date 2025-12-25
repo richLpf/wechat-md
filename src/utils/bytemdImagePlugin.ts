@@ -1,11 +1,6 @@
 import type { BytemdPlugin } from 'bytemd'
 import type { Root } from 'hast'
-import { saveImage, getImageDataUrl, convertImageUrl, getStoredImages } from './imageStorage'
-
-/**
- * 将图片文件转换为 File 对象
- */
-const dataURLtoFile = (dataurl: string, filename: string): File => {
+import { saveImage, convertImageUrl, getStoredImages } from './imageStorage'
   const arr = dataurl.split(',')
   const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png'
   const bstr = atob(arr[1])
@@ -173,8 +168,8 @@ export default function imageUploadPlugin(): BytemdPlugin {
       // 获取编辑器元素 - 尝试多种方式
       const getEditorElement = (): HTMLElement | null => {
         // 方式1: 尝试 CodeMirror 5 API
-        if (codemirror && typeof codemirror.getWrapperElement === 'function') {
-          return codemirror.getWrapperElement()
+        if (codemirror && typeof (codemirror as any).getWrapperElement === 'function') {
+          return (codemirror as any).getWrapperElement()
         }
         // 方式2: 尝试 CodeMirror 6 API
         if (codemirror && (codemirror as any).dom) {

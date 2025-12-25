@@ -170,8 +170,8 @@ const applySpecialRules = (element: HTMLElement): void => {
  * 生成微信公众号格式的 HTML（使用 juice 转换 CSS 为内联样式）
  */
 export const generateWechatHtml = (
-  content: string,
-  isMarkdown: boolean,
+  _content: string,
+  _isMarkdown: boolean,
   templateId: string | null
 ): string => {
   // 获取模版的 CSS
@@ -283,7 +283,6 @@ ${articleElement.outerHTML}
       preserveMediaQueries: false, // 不保留媒体查询
       preserveFontFaces: false, // 不保留 @font-face
       preserveKeyFrames: false, // 不保留 @keyframes
-      stripImportant: false, // 保留 !important
       xmlMode: false, // HTML 模式
       preserveImportant: true, // 保留 !important
       webResources: {

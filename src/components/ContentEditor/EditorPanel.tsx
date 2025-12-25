@@ -78,80 +78,67 @@ const EditorPanel: React.FC<EditorPanelProps> = ({ content, onChange }) => {
           // 为所有子元素添加对应的 class
           const addClassesToElements = (element: Element) => {
             const tagName = element.tagName.toLowerCase()
-            let added = false
             
             switch (tagName) {
               case 'h1':
                 if (!element.classList.contains('wechat-article-title')) {
                   element.classList.add('wechat-article-title')
-                  added = true
                 }
                 break
               case 'h2':
                 if (!element.classList.contains('wechat-article-h2')) {
                   element.classList.add('wechat-article-h2')
-                  added = true
                 }
                 break
               case 'h3':
                 if (!element.classList.contains('wechat-article-h3')) {
                   element.classList.add('wechat-article-h3')
-                  added = true
                 }
                 break
               case 'p':
                 if (!element.classList.contains('wechat-article-paragraph')) {
                   element.classList.add('wechat-article-paragraph')
-                  added = true
                 }
                 break
               case 'blockquote':
                 if (!element.classList.contains('wechat-article-blockquote')) {
                   element.classList.add('wechat-article-blockquote')
-                  added = true
                 }
                 break
               case 'ul':
               case 'ol':
                 if (!element.classList.contains('wechat-article-list')) {
                   element.classList.add('wechat-article-list')
-                  added = true
                 }
                 break
               case 'li':
                 if (!element.classList.contains('wechat-article-list-item')) {
                   element.classList.add('wechat-article-list-item')
-                  added = true
                 }
                 break
               case 'table':
                 if (!element.classList.contains('wechat-article-table')) {
                   element.classList.add('wechat-article-table')
-                  added = true
                 }
                 break
               case 'th':
                 if (!element.classList.contains('wechat-article-th')) {
                   element.classList.add('wechat-article-th')
-                  added = true
                 }
                 break
               case 'td':
                 if (!element.classList.contains('wechat-article-td')) {
                   element.classList.add('wechat-article-td')
-                  added = true
                 }
                 break
               case 'code':
                 if (!element.classList.contains('wechat-article-code')) {
                   element.classList.add('wechat-article-code')
-                  added = true
                 }
                 break
               case 'hr':
                 if (!element.classList.contains('wechat-article-hr')) {
                   element.classList.add('wechat-article-hr')
-                  added = true
                 }
                 break
             }

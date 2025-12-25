@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Input, Button, message } from 'antd'
+import { Input, Button } from 'antd'
 import { SaveOutlined } from '@ant-design/icons'
 
 const { TextArea } = Input
