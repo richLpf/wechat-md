@@ -30,6 +30,11 @@
 - 支持导入 Markdown 文件
 - 模板持久化存储
 
+### 📊 数据分析
+- 集成 Google Analytics（可选）
+- 支持页面浏览和自定义事件追踪
+- 完全隐私友好，可选择性启用
+
 ## 🛠️ 技术栈
 
 - **前端框架**：React 18 + TypeScript
@@ -51,6 +56,22 @@
 ```bash
 pnpm install
 ```
+
+### 配置 Google Analytics（可选）
+
+如果需要使用 Google Analytics 统计访问数据，请创建 `.env` 文件并配置：
+
+```bash
+# 创建 .env 文件
+VITE_GA_ID=G-R8Z42EMR86
+```
+
+获取 Google Analytics ID：
+1. 访问 [Google Analytics](https://analytics.google.com/)
+2. 创建属性并获取测量 ID（格式：`G-XXXXXXXXXX`）
+3. 将 ID 填入 `.env` 文件中的 `VITE_GA_ID`
+
+> 注意：如果不配置 `VITE_GA_ID`，应用会正常运行，只是不会收集分析数据。当前项目已配置 GA4 测量 ID：`G-R8Z42EMR86`
 
 ### 开发运行
 
@@ -155,6 +176,30 @@ wechat-md/
 - 随时编辑和删除
 
 ## ⚙️ 技术细节
+
+### Google Analytics 配置
+
+#### 本地开发
+创建 `.env` 文件并设置 `VITE_GA_ID`：
+```bash
+VITE_GA_ID=G-XXXXXXXXXX
+```
+
+#### GitHub Pages 部署
+如果需要在 GitHub Pages 部署时启用 Google Analytics：
+
+1. 在 GitHub 仓库中设置 Secrets：
+   - 进入仓库 Settings → Secrets and variables → Actions
+   - 添加新的 Secret：`VITE_GA_ID`，值为你的 Google Analytics ID
+
+2. 更新 `.github/workflows/static.yml`，在 Build 步骤中添加环境变量：
+```yaml
+- name: Build
+  run: pnpm build
+  env:
+    GITHUB_PAGES: 'true'
+    VITE_GA_ID: ${{ secrets.VITE_GA_ID }}
+```
 
 ### 微信公众号兼容性
 
