@@ -57,21 +57,11 @@
 pnpm install
 ```
 
-### 配置 Google Analytics（可选）
+### Google Analytics
 
-如果需要使用 Google Analytics 统计访问数据，请创建 `.env` 文件并配置：
+项目已集成 Google Analytics 4 (GA4)，测量 ID：`G-R8Z42EMR86`
 
-```bash
-# 创建 .env 文件
-VITE_GA_ID=G-R8Z42EMR86
-```
-
-获取 Google Analytics ID：
-1. 访问 [Google Analytics](https://analytics.google.com/)
-2. 创建属性并获取测量 ID（格式：`G-XXXXXXXXXX`）
-3. 将 ID 填入 `.env` 文件中的 `VITE_GA_ID`
-
-> 注意：如果不配置 `VITE_GA_ID`，应用会正常运行，只是不会收集分析数据。当前项目已配置 GA4 测量 ID：`G-R8Z42EMR86`
+> 注意：GA4 测量 ID 是公开的，已直接配置在代码中，无需额外配置。
 
 ### 开发运行
 
@@ -186,20 +176,7 @@ VITE_GA_ID=G-XXXXXXXXXX
 ```
 
 #### GitHub Pages 部署
-如果需要在 GitHub Pages 部署时启用 Google Analytics：
-
-1. 在 GitHub 仓库中设置 Secrets：
-   - 进入仓库 Settings → Secrets and variables → Actions
-   - 添加新的 Secret：`VITE_GA_ID`，值为你的 Google Analytics ID
-
-2. 更新 `.github/workflows/static.yml`，在 Build 步骤中添加环境变量：
-```yaml
-- name: Build
-  run: pnpm build
-  env:
-    GITHUB_PAGES: 'true'
-    VITE_GA_ID: ${{ secrets.VITE_GA_ID }}
-```
+Google Analytics 已直接配置在代码中，无需额外配置即可在 GitHub Pages 部署时自动启用。
 
 ### 微信公众号兼容性
 

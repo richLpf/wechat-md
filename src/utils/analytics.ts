@@ -1,18 +1,14 @@
+// Google Analytics 4 测量 ID
+const GA_ID = 'G-R8Z42EMR86'
+
 /**
  * Google Analytics 初始化
  */
 export const initGoogleAnalytics = () => {
-  const gaId = import.meta.env.VITE_GA_ID
-  
-  if (!gaId) {
-    console.log('Google Analytics ID 未配置，跳过初始化')
-    return
-  }
-
   // 加载 Google Analytics 脚本 (gtag.js)
   const script = document.createElement('script')
   script.async = true
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`
   document.head.appendChild(script)
 
   // 初始化 gtag
@@ -21,7 +17,7 @@ export const initGoogleAnalytics = () => {
     window.dataLayer.push(args)
   }
   gtag('js', new Date())
-  gtag('config', gaId)
+  gtag('config', GA_ID)
 
   // 将 gtag 挂载到 window 对象，方便全局使用
   ;(window as any).gtag = gtag
@@ -32,7 +28,7 @@ export const initGoogleAnalytics = () => {
  */
 export const trackPageView = (path: string) => {
   if (typeof (window as any).gtag === 'function') {
-    ;(window as any).gtag('config', import.meta.env.VITE_GA_ID, {
+    ;(window as any).gtag('config', GA_ID, {
       page_path: path,
     })
   }
