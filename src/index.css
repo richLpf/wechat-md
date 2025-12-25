@@ -123,5 +123,5 @@ body {
 
 /* 自定义样式，放在 bytemd 的 css 之后 */
 .bytemd {
-   height: calc(100vh - 80px);
+   height: calc(100vh - 55px);
 }
