@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Button, Drawer, Space, message, Dropdown, Modal, Input } from 'antd'
-import { WechatOutlined, SettingOutlined, CheckOutlined, FileTextOutlined, DownOutlined } from '@ant-design/icons'
+import { WechatOutlined, SettingOutlined, CheckOutlined, FileTextOutlined, DownOutlined, QuestionCircleOutlined } from '@ant-design/icons'
 import { Editor } from '@bytemd/react'
 import gfm from '@bytemd/plugin-gfm'
 import highlight from '@bytemd/plugin-highlight'
@@ -10,13 +10,25 @@ import StyleEditor from './StyleEditor'
 import StyleInjector from '../StyleInjector'
 import TemplateManager from '../TemplateManager'
 import wechatArticlePlugin from '../../utils/bytemdWechatPlugin'
+import imageUploadPlugin from '../../utils/bytemdImagePlugin'
 import { generateWechatFormatHtml } from '../../utils/htmlExporter'
 import { getTemplates, getDefaultTemplate, getTemplateById, saveTemplate, canAddMoreTemplates } from '../../utils/templateStorage'
 
-const plugins = [gfm(), highlight(), wechatArticlePlugin()]
+const plugins = [gfm(), highlight(), wechatArticlePlugin(), imageUploadPlugin()]
+
+const CONTENT_STORAGE_KEY = 'wechat-editor-content'
 
 const ContentEditor: React.FC = () => {
-  const [content, setContent] = useState('')
+  // 从 localStorage 恢复内容
+  const [content, setContent] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CONTENT_STORAGE_KEY)
+      return saved || ''
+    } catch (error) {
+      console.error('Failed to load content from localStorage:', error)
+      return ''
+    }
+  })
   const [currentStyle, setCurrentStyle] = useState('')
   const [showStyleEditor, setShowStyleEditor] = useState(false)
   const [showTemplateManager, setShowTemplateManager] = useState(false)
@@ -82,19 +94,106 @@ const ContentEditor: React.FC = () => {
   const handleCopyToWechat = async () => {
     try {
       const html = generateWechatFormatHtml(content, true, selectedTemplateId)
-      await navigator.clipboard.writeText(html)
-      setCopySuccess(true)
-      message.success('已复制到剪贴板')
-      setTimeout(() => setCopySuccess(false), 2000)
+      
+      if (!html || html.trim().length === 0) {
+        message.error('没有内容可复制，请先输入内容')
+        return
+      }
+      
+      console.log('准备复制的 HTML:', html.substring(0, 500))
+      
+      // 使用 Clipboard API 复制为 text/html 格式
+      if (navigator.clipboard && navigator.clipboard.write) {
+        try {
+          // 创建 ClipboardItem，设置 text/html 格式
+          const clipboardItem = new ClipboardItem({
+            'text/html': new Blob([html], { type: 'text/html' }),
+            'text/plain': new Blob([html], { type: 'text/plain' })
+          })
+          await navigator.clipboard.write([clipboardItem])
+          setCopySuccess(true)
+          message.success('已复制到剪贴板（HTML 格式），可直接粘贴到微信公众号编辑器')
+          setTimeout(() => setCopySuccess(false), 2000)
+        } catch (clipboardError) {
+          console.warn('ClipboardItem 失败，尝试降级方案:', clipboardError)
+          // 降级方案：使用 execCommand
+          await copyWithExecCommand(html)
+        }
+      } else {
+        // 降级方案：使用 execCommand
+        await copyWithExecCommand(html)
+      }
     } catch (error) {
-      message.error('复制失败')
+      console.error('复制失败:', error)
+      message.error('复制失败，请重试')
+    }
+  }
+
+  // 使用 execCommand 复制（降级方案）
+  const copyWithExecCommand = async (html: string) => {
+    try {
+      // 创建临时容器
+      const tempDiv = document.createElement('div')
+      tempDiv.style.position = 'fixed'
+      tempDiv.style.left = '0'
+      tempDiv.style.top = '0'
+      tempDiv.style.width = '1px'
+      tempDiv.style.height = '1px'
+      tempDiv.style.opacity = '0'
+      tempDiv.style.pointerEvents = 'none'
+      tempDiv.contentEditable = 'true'
+      tempDiv.innerHTML = html
+      document.body.appendChild(tempDiv)
+      
+      // 选中内容
+      const range = document.createRange()
+      range.selectNodeContents(tempDiv)
+      const selection = window.getSelection()
+      if (selection) {
+        selection.removeAllRanges()
+        selection.addRange(range)
+        
+        // 执行复制
+        const success = document.execCommand('copy')
+        selection.removeAllRanges()
+        document.body.removeChild(tempDiv)
+        
+        if (success) {
+          setCopySuccess(true)
+          message.success('已复制到剪贴板（HTML 格式），可直接粘贴到微信公众号编辑器')
+          setTimeout(() => setCopySuccess(false), 2000)
+        } else {
+          throw new Error('execCommand 复制失败')
+        }
+      } else {
+        document.body.removeChild(tempDiv)
+        throw new Error('无法获取 selection')
+      }
+    } catch (error) {
+      console.error('execCommand 复制失败:', error)
+      throw error
     }
   }
 
   // 导入文件
   const handleImport = (importedContent: string) => {
     setContent(importedContent)
+    // 保存到 localStorage
+    try {
+      localStorage.setItem(CONTENT_STORAGE_KEY, importedContent)
+    } catch (error) {
+      console.error('Failed to save content to localStorage:', error)
+    }
   }
+
+  // 内容变化时自动保存到 localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(CONTENT_STORAGE_KEY, content)
+    } catch (error) {
+      console.error('Failed to save content to localStorage:', error)
+    }
+  }, [content])
 
   // 保存当前样式为新模版
   const handleSaveAsTemplate = () => {
@@ -288,6 +387,16 @@ const ContentEditor: React.FC = () => {
           </Dropdown>
         </Space>
         <Space>
+          <Button
+            size="small"
+            type="text"
+            icon={<QuestionCircleOutlined />}
+            onClick={() => {
+              window.open('https://vqc26krqvye.feishu.cn/share/base/form/shrcnOyxyHQPOtpgREHag6u8kXe', '_blank')
+            }}
+          >
+            问题反馈
+          </Button>
           <Button
             icon={<SettingOutlined />}
             size="small"

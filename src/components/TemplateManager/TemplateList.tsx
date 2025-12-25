@@ -73,11 +73,19 @@ const TemplateList: React.FC<TemplateListProps> = ({ onEdit, onRefresh }) => {
       title: '模版名称',
       dataIndex: 'name',
       key: 'name',
+      width: 200,
+      ellipsis: true,
       render: (name: string, record: Template) => (
-        <Space>
-          <span>{name}</span>
+        <Space style={{ width: '100%' }}>
+          <span style={{ 
+            display: 'inline-block',
+            maxWidth: '120px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}>{name}</span>
           {isBuiltinTemplate(record.id) && (
-            <Tag color="blue">系统模版</Tag>
+            <Tag color="blue" style={{ flexShrink: 0 }}>系统模版</Tag>
           )}
         </Space>
       ),
@@ -98,14 +106,6 @@ const TemplateList: React.FC<TemplateListProps> = ({ onEdit, onRefresh }) => {
       title: '创建时间',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: 180,
-      render: (timestamp: number) =>
-        new Date(timestamp).toLocaleString('zh-CN'),
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
       width: 180,
       render: (timestamp: number) =>
         new Date(timestamp).toLocaleString('zh-CN'),

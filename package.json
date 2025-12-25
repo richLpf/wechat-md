@@ -1,5 +1,5 @@
 {
-  "name": "wechat-template",
+  "name": "wechat-md",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -16,6 +16,7 @@
     "antd": "^5.12.0",
     "bytemd": "^1.22.0",
     "highlight.js": "^11.11.1",
+    "juice": "^11.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

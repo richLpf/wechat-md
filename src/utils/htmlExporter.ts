@@ -1,6 +1,7 @@
 import { getTemplateById } from './templateStorage'
 import { processContent } from './htmlGenerator'
 import { generateWechatHtml } from './wechatFormatter'
+import { convertImageUrl } from './imageStorage'
 
 /**
  * 从预览区域获取 HTML 内容
@@ -20,6 +21,18 @@ export const getPreviewHtml = (): string => {
       
       // 移除 markdown-body 类（这是 bytemd 的容器类，不需要在导出的 HTML 中）
       cloned.classList.remove('markdown-body')
+      
+      // 处理本地图片：将 local:// 转换为 data URL
+      const images = cloned.querySelectorAll('img[src^="local://"]')
+      images.forEach((img) => {
+        const src = img.getAttribute('src')
+        if (src) {
+          const dataUrl = convertImageUrl(src)
+          if (dataUrl && dataUrl !== src) {
+            img.setAttribute('src', dataUrl)
+          }
+        }
+      })
       
       return cloned.outerHTML
     }

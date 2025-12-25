@@ -110,6 +110,11 @@ export const processContent = (content: string, isMarkdown: boolean): string => 
     html = convertMarkdownToHtml(content)
   }
   
+  // 处理本地图片：将 local:// 转换为 data URL
+  // 注意：这里只处理 HTML 中的图片，Markdown 中的图片在 convertMarkdownToHtml 中处理
+  // 由于 processContent 是同步函数，图片转换在导出时由其他函数处理
+  // 这里只保留 local:// 协议，实际转换在导出时进行
+  
   // 清理 HTML（移除行内样式）
   html = cleanHtml(html)
   
@@ -139,7 +144,7 @@ const convertMarkdownToHtml = (markdown: string): string => {
     .replace(/\*(.*?)\*/gim, '<em>$1</em>')
     // 链接
     .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2">$1</a>')
-    // 图片
+    // 图片（保留 local:// 协议，后续处理）
     .replace(/!\[([^\]]*)\]\(([^)]+)\)/gim, '<img alt="$1" src="$2" />')
     // 水平线
     .replace(/^---$/gim, '<hr />')
