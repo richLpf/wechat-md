@@ -9,7 +9,7 @@ import juice from 'juice'
 const ALLOWED_TAGS = new Set([
   'section', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
   'ul', 'ol', 'li', 'blockquote', 'img', 'hr',
-  'strong', 'em', 'a', 'br', 'span'
+  'strong', 'em', 'a', 'br', 'span', 'pre', 'code'
 ])
 
 /**
@@ -90,6 +90,51 @@ const cleanElement = (element: Element, depth: number = 0): Element | null => {
       return null
     }
     return newElement
+  }
+  
+  if (tagName === 'pre') {
+    // pre 内可以包含 code 标签，也可以直接包含文本
+    Array.from(element.children).forEach(child => {
+      const childTagName = child.tagName.toLowerCase()
+      if (childTagName === 'code') {
+        const cleaned = cleanElement(child, depth + 1)
+        if (cleaned) {
+          newElement.appendChild(cleaned)
+        }
+      } else {
+        // 如果不是 code，保留文本内容
+        const text = child.textContent || ''
+        if (text.trim()) {
+          const code = document.createElement('code')
+          code.textContent = text.trim()
+          newElement.appendChild(code)
+        }
+      }
+    })
+    // 如果没有子元素，检查是否有文本内容
+    if (newElement.children.length === 0) {
+      const text = element.textContent || ''
+      if (text.trim()) {
+        const code = document.createElement('code')
+        code.textContent = text.trim()
+        newElement.appendChild(code)
+      } else {
+        return null
+      }
+    }
+    return newElement
+  }
+  
+  if (tagName === 'code') {
+    // code 标签保留所有文本内容，不处理子元素（因为代码块中的内容应该原样保留）
+    const text = element.textContent || ''
+    if (text.trim()) {
+      newElement.textContent = text.trim()
+      return newElement
+    } else {
+      // 如果没有文本内容，返回 null
+      return null
+    }
   }
   
   // 其他标签：递归处理子元素
@@ -234,12 +279,24 @@ export const generateWechatHtml = (
   let processedCss = css
   
   // 移除 .bytemd-preview .markdown-body 前缀，让 CSS 选择器能匹配到元素
-  // 关键：需要处理两种格式：
+  // 关键：需要处理多种格式：
   // 1. 连写格式：.bytemd-preview .markdown-body.wechat-article （没有空格）
   // 2. 空格分隔：.bytemd-preview .markdown-body .wechat-article-title （有空格）
+  // 3. 标签选择器：.bytemd-preview .markdown-body pre.wechat-article-code-block （标签+class）
+  // 4. 标签选择器：.bytemd-preview .markdown-body pre code （纯标签）
+  // 5. 标签+空格+class：.bytemd-preview .markdown-body pre .wechat-article-code （标签 空格 class）
   
   // 先处理连写情况：.bytemd-preview .markdown-body.wechat-article -> .wechat-article
   processedCss = processedCss.replace(/\.bytemd-preview\s+\.markdown-body\./g, '.')
+  
+  // 处理标签+空格+class的情况：.bytemd-preview .markdown-body pre .wechat-article-code -> pre .wechat-article-code
+  processedCss = processedCss.replace(/\.bytemd-preview\s+\.markdown-body\s+([a-zA-Z][a-zA-Z0-9]*)\s+\.([\w-]+)/g, '$1 .$2')
+  
+  // 处理标签+class的情况：.bytemd-preview .markdown-body pre.wechat-article-code-block -> pre.wechat-article-code-block
+  processedCss = processedCss.replace(/\.bytemd-preview\s+\.markdown-body\s+([a-zA-Z][a-zA-Z0-9]*\.[\w-]+)/g, '$1')
+  
+  // 处理标签选择器：.bytemd-preview .markdown-body pre code -> pre code
+  processedCss = processedCss.replace(/\.bytemd-preview\s+\.markdown-body\s+([a-zA-Z][a-zA-Z0-9]*\s+[a-zA-Z][a-zA-Z0-9]*)/g, '$1')
   
   // 处理空格分隔情况：.bytemd-preview .markdown-body .wechat-article-title -> .wechat-article-title
   processedCss = processedCss.replace(/\.bytemd-preview\s+\.markdown-body\s+/g, '')

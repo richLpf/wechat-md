@@ -67,15 +67,75 @@ export const builtinTemplates: Template[] = [
 
 .bytemd-preview .markdown-body .wechat-article-code {
   background: #f5f5f5;
-  padding: 14px 10px;
+  padding: 2px 6px;
   border-radius: 3px;
   font-family: "Consolas", "Monaco", monospace;
   font-size: 0.9em;
   color: #e83e8c;
+  display: inline;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.bytemd-preview .markdown-body pre .wechat-article-code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  display: inline;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block {
+  background: #f5f5f5;
+  padding: 14px 10px;
+  border-radius: 3px;
+  font-family: "Consolas", "Monaco", monospace;
+  font-size: 0.9em;
+  color: #333;
+  display: block;
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
   margin-bottom: 20px;
+  overflow-x: auto;
+  line-height: 1.6;
+  border: 1px solid #e0e0e0;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* 确保 highlight.js 的语法高亮样式在代码块中正确显示 */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  display: block;
+  overflow-x: auto;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
+  color: #d73a49;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
+  color: #032f62;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -161,15 +221,75 @@ export const builtinTemplates: Template[] = [
 
 .bytemd-preview .markdown-body .wechat-article-code {
   background: #ecf0f1;
-  padding: 14px 10px;
+  padding: 2px 6px;
   border-radius: 3px;
   font-family: "Consolas", "Monaco", monospace;
   font-size: 0.9em;
   color: #e74c3c;
+  display: inline;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.bytemd-preview .markdown-body pre .wechat-article-code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  display: inline;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block {
+  background: #ecf0f1;
+  padding: 14px 10px;
+  border-radius: 3px;
+  font-family: "Consolas", "Monaco", monospace;
+  font-size: 0.9em;
+  color: #2c3e50;
+  display: block;
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
   margin-bottom: 20px;
+  overflow-x: auto;
+  line-height: 1.6;
+  border: 1px solid #d0d7de;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* 确保 highlight.js 的语法高亮样式在代码块中正确显示 */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  display: block;
+  overflow-x: auto;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
+  color: #d73a49;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
+  color: #032f62;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -255,15 +375,75 @@ export const builtinTemplates: Template[] = [
 
 .bytemd-preview .markdown-body .wechat-article-code {
   background: #fff5f0;
-  padding: 14px 10px;
+  padding: 2px 6px;
   border-radius: 3px;
   font-family: "Consolas", "Monaco", monospace;
   font-size: 0.9em;
   color: #e83e8c;
+  display: inline;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.bytemd-preview .markdown-body pre .wechat-article-code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  display: inline;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block {
+  background: #fff5f0;
+  padding: 14px 10px;
+  border-radius: 3px;
+  font-family: "Consolas", "Monaco", monospace;
+  font-size: 0.9em;
+  color: #333;
+  display: block;
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
   margin-bottom: 20px;
+  overflow-x: auto;
+  line-height: 1.6;
+  border: 1px solid #ffe5d4;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* 确保 highlight.js 的语法高亮样式在代码块中正确显示 */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  display: block;
+  overflow-x: auto;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
+  color: #d73a49;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
+  color: #032f62;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -349,15 +529,75 @@ export const builtinTemplates: Template[] = [
 
 .bytemd-preview .markdown-body .wechat-article-code {
   background: #f4ecf7;
-  padding: 14px 10px;
+  padding: 2px 6px;
   border-radius: 3px;
   font-family: "Consolas", "Monaco", monospace;
   font-size: 0.9em;
   color: #e83e8c;
+  display: inline;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.bytemd-preview .markdown-body pre .wechat-article-code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  display: inline;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block {
+  background: #f4ecf7;
+  padding: 14px 10px;
+  border-radius: 3px;
+  font-family: "Consolas", "Monaco", monospace;
+  font-size: 0.9em;
+  color: #333;
+  display: block;
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
   margin-bottom: 20px;
+  overflow-x: auto;
+  line-height: 1.6;
+  border: 1px solid #e8d5f0;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* 确保 highlight.js 的语法高亮样式在代码块中正确显示 */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  display: block;
+  overflow-x: auto;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
+  color: #d73a49;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
+  color: #032f62;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -468,13 +708,21 @@ export const builtinTemplates: Template[] = [
   font-size: 14px;
   background-color: #f6f8fa;  
   color: #7c3aed;
-  padding: 14px 10px;
+  padding: 2px 6px;
   border-radius: 4px;
   border: 1px solid #eaecef;
+  display: inline;
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  margin-bottom: 20px;
+}
+
+.bytemd-preview .markdown-body pre .wechat-article-code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  border: none;
+  display: inline;
 }
 
 .bytemd-preview .markdown-body pre.wechat-article-code-block {
@@ -483,13 +731,78 @@ export const builtinTemplates: Template[] = [
   padding: 14px 10px;
   border-radius: 8px;
   overflow-x: auto;
-  margin: 20px 0;
+  margin-bottom: 20px;
   line-height: 1.5;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  display: block;
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  margin-bottom: 20px;
+  border: 1px solid #1a1a1a;
+}
+
+/* 确保 highlight.js 的语法高亮样式在代码块中正确显示（深色主题） */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  display: block;
+  overflow-x: auto;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
+  color: #c792ea;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
+  color: #c3e88d;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
+  color: #546e7a;
+  font-style: italic;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* 确保 highlight.js 的语法高亮样式在代码块中正确显示 */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  display: block;
+  overflow-x: auto;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
+  color: #d73a49;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
+  color: #032f62;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -611,13 +924,74 @@ export const builtinTemplates: Template[] = [
   font-size: 14px;
   background-color: #f6f6f6;
   color: #7c3aed;
-  padding: 14px 10px;
+  padding: 2px 6px;
   border-radius: 3px;
   margin: 0 2px;
+  display: inline;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.bytemd-preview .markdown-body pre .wechat-article-code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  margin: 0;
+  display: inline;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block {
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 14px;
+  background-color: #f6f6f6;
+  color: #333;
+  padding: 14px 10px;
+  border-radius: 3px;
+  display: block;
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
   margin-bottom: 20px;
+  overflow-x: auto;
+  line-height: 1.6;
+  border: 1px solid #e0e0e0;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* 确保 highlight.js 的语法高亮样式在代码块中正确显示 */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  display: block;
+  overflow-x: auto;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
+  color: #d73a49;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
+  color: #032f62;
+}
+
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {

@@ -78,6 +78,16 @@ export default function wechatArticlePlugin(): BytemdPlugin {
                     className.push('wechat-article-td')
                   }
                   break
+                case 'pre':
+                  // 检查是否是代码块（包含 code 子元素或直接包含文本）
+                  const hasCodeChild = node.children && Array.isArray(node.children) && 
+                    node.children.some((child: any) => child.type === 'element' && child.tagName === 'code')
+                  if (hasCodeChild || (node.children && node.children.length > 0)) {
+                    if (!className.includes('wechat-article-code-block')) {
+                      className.push('wechat-article-code-block')
+                    }
+                  }
+                  break
                 case 'code':
                   if (!className.includes('wechat-article-code')) {
                     className.push('wechat-article-code')

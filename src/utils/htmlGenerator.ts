@@ -46,6 +46,13 @@ export const addWechatClasses = (html: string): string => {
       case 'td':
         element.className = 'wechat-article-td'
         break
+      case 'pre':
+        // 检查是否是代码块（包含 code 子元素或直接包含文本）
+        const hasCodeChild = element.querySelector('code') !== null
+        if (hasCodeChild || element.textContent?.trim()) {
+          element.className = 'wechat-article-code-block'
+        }
+        break
       case 'code':
         element.className = 'wechat-article-code'
         break
