@@ -161,6 +161,7 @@ def fibonacci(n):
       const newDoc = createDocument('第一个文档', defaultContent)
       setDocuments([newDoc])
       setCurrentDocumentIdState(newDoc.id)
+      setContent(newDoc.content) // 更新编辑器内容
       setSelectedTemplateId(getDefaultTemplate()?.id || null)
     } else {
       // 如果有文档但没有当前文档，选择第一个
