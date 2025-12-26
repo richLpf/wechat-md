@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { Button, Drawer, Space, message, Dropdown, Modal, Input } from 'antd'
-import { WechatOutlined, SettingOutlined, CheckOutlined, FileTextOutlined, DownOutlined, QuestionCircleOutlined } from '@ant-design/icons'
+import React, { useState, useEffect, useRef } from 'react'
+import { Button, Drawer, Space, message, Dropdown, Modal, Input, Popconfirm } from 'antd'
+import { WechatOutlined, SettingOutlined, CheckOutlined, FileTextOutlined, DownOutlined, QuestionCircleOutlined, PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { Editor } from '@bytemd/react'
 import gfm from '@bytemd/plugin-gfm'
 import highlight from '@bytemd/plugin-highlight'
@@ -13,21 +13,34 @@ import wechatArticlePlugin from '../../utils/bytemdWechatPlugin'
 import imageUploadPlugin from '../../utils/bytemdImagePlugin'
 import { generateWechatFormatHtml } from '../../utils/htmlExporter'
 import { getTemplates, getDefaultTemplate, getTemplateById, saveTemplate, canAddMoreTemplates } from '../../utils/templateStorage'
+import { 
+  getDocuments, 
+  getCurrentDocument, 
+  getCurrentDocumentId, 
+  setCurrentDocumentId, 
+  saveDocument, 
+  createDocument, 
+  deleteDocument, 
+  updateDocumentName,
+  canCreateDocument,
+  type Document
+} from '../../utils/documentStorage'
 
 const plugins = [gfm(), highlight(), wechatArticlePlugin(), imageUploadPlugin()]
 
-const CONTENT_STORAGE_KEY = 'wechat-editor-content'
-
 const ContentEditor: React.FC = () => {
-  // 从 localStorage 恢复内容
+  // 文档管理状态
+  const [documents, setDocuments] = useState<Document[]>(getDocuments())
+  const [currentDocumentId, setCurrentDocumentIdState] = useState<string | null>(getCurrentDocumentId())
+  const [showRenameModal, setShowRenameModal] = useState(false)
+  const [renameDocId, setRenameDocId] = useState<string | null>(null)
+  const [renameDocName, setRenameDocName] = useState('')
+  const isSwitchingRef = useRef(false) // 防止切换文档时触发保存
+
+  // 从当前文档恢复内容
   const [content, setContent] = useState(() => {
-    try {
-      const saved = localStorage.getItem(CONTENT_STORAGE_KEY)
-      return saved || ''
-    } catch (error) {
-      console.error('Failed to load content from localStorage:', error)
-      return ''
-    }
+    const currentDoc = getCurrentDocument()
+    return currentDoc?.content || ''
   })
   const [currentStyle, setCurrentStyle] = useState('')
   const [showStyleEditor, setShowStyleEditor] = useState(false)
@@ -35,10 +48,70 @@ const ContentEditor: React.FC = () => {
   const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false)
   const [templateName, setTemplateName] = useState('')
   const [copySuccess, setCopySuccess] = useState(false)
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
-    getDefaultTemplate()?.id || null
-  )
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(() => {
+    const currentDoc = getCurrentDocument()
+    return currentDoc?.selectedTemplateId || getDefaultTemplate()?.id || null
+  })
   const [templates, setTemplates] = useState(getTemplates())
+
+  // 初始化：如果没有文档，创建第一个
+  useEffect(() => {
+    const docs = getDocuments()
+    if (docs.length === 0) {
+      const newDoc = createDocument('文档 1')
+      setDocuments([newDoc])
+      setCurrentDocumentIdState(newDoc.id)
+      setSelectedTemplateId(getDefaultTemplate()?.id || null)
+    } else {
+      // 如果有文档但没有当前文档，选择第一个
+      const currentId = getCurrentDocumentId()
+      if (!currentId || !docs.find(d => d.id === currentId)) {
+        const firstDoc = docs[0]
+        setCurrentDocumentIdState(firstDoc.id)
+        setCurrentDocumentId(firstDoc.id)
+        loadDocument(firstDoc.id)
+      } else {
+        loadDocument(currentId)
+      }
+    }
+  }, [])
+
+  // 加载文档
+  const loadDocument = (docId: string) => {
+    const allDocs = getDocuments() // 从 localStorage 读取最新数据
+    const doc = allDocs.find(d => d.id === docId)
+    if (doc) {
+      isSwitchingRef.current = true
+      setContent(doc.content)
+      setSelectedTemplateId(doc.selectedTemplateId || getDefaultTemplate()?.id || null)
+      setCurrentDocumentIdState(docId)
+      setCurrentDocumentId(docId)
+      setDocuments(allDocs) // 更新文档列表
+      setTimeout(() => {
+        isSwitchingRef.current = false
+      }, 100)
+    }
+  }
+
+  // 保存当前文档
+  const saveCurrentDocument = () => {
+    if (!currentDocumentId || isSwitchingRef.current) {
+      return
+    }
+    const allDocs = getDocuments() // 从 localStorage 读取最新数据
+    const doc = allDocs.find(d => d.id === currentDocumentId)
+    if (doc) {
+      const updatedDoc: Document = {
+        ...doc,
+        content,
+        selectedTemplateId,
+        updatedAt: Date.now()
+      }
+      saveDocument(updatedDoc)
+      // 更新本地状态
+      setDocuments(getDocuments())
+    }
+  }
 
   // 监听模版变化
   useEffect(() => {
@@ -178,22 +251,101 @@ const ContentEditor: React.FC = () => {
   // 导入文件
   const handleImport = (importedContent: string) => {
     setContent(importedContent)
-    // 保存到 localStorage
-    try {
-      localStorage.setItem(CONTENT_STORAGE_KEY, importedContent)
-    } catch (error) {
-      console.error('Failed to save content to localStorage:', error)
+    // 保存到当前文档
+    saveCurrentDocument()
+  }
+
+  // 内容变化时自动保存到当前文档
+  useEffect(() => {
+    if (!isSwitchingRef.current && currentDocumentId) {
+      const timer = setTimeout(() => {
+        if (!isSwitchingRef.current && currentDocumentId) {
+          const allDocs = getDocuments()
+          const doc = allDocs.find(d => d.id === currentDocumentId)
+          if (doc) {
+            const updatedDoc: Document = {
+              ...doc,
+              content,
+              selectedTemplateId,
+              updatedAt: Date.now()
+            }
+            saveDocument(updatedDoc)
+            setDocuments(getDocuments())
+          }
+        }
+      }, 500) // 防抖：500ms后保存
+      return () => clearTimeout(timer)
+    }
+  }, [content, selectedTemplateId, currentDocumentId])
+
+  // 切换文档
+  const handleSwitchDocument = (docId: string) => {
+    if (docId === currentDocumentId) {
+      return
+    }
+    // 先保存当前文档
+    saveCurrentDocument()
+    // 加载新文档
+    loadDocument(docId)
+    setDocuments(getDocuments())
+  }
+
+  // 新建文档
+  const handleCreateDocument = () => {
+    if (!canCreateDocument()) {
+      message.warning('最多只能保存 5 篇文档，请先删除现有文档')
+      return
+    }
+    // 保存当前文档
+    saveCurrentDocument()
+    // 创建新文档
+    const newDoc = createDocument()
+    setDocuments(getDocuments())
+    loadDocument(newDoc.id)
+    message.success('新文档已创建')
+  }
+
+  // 删除文档
+  const handleDeleteDocument = (docId: string) => {
+    if (deleteDocument(docId)) {
+      const updatedDocs = getDocuments()
+      setDocuments(updatedDocs)
+      if (updatedDocs.length > 0) {
+        loadDocument(updatedDocs[0].id)
+      }
+      message.success('文档已删除')
+    } else {
+      message.error('删除失败')
     }
   }
 
-  // 内容变化时自动保存到 localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(CONTENT_STORAGE_KEY, content)
-    } catch (error) {
-      console.error('Failed to save content to localStorage:', error)
+  // 重命名文档
+  const handleRenameDocument = (docId: string) => {
+    const allDocs = getDocuments() // 从 localStorage 读取最新数据
+    const doc = allDocs.find(d => d.id === docId)
+    if (doc) {
+      setRenameDocId(docId)
+      setRenameDocName(doc.name)
+      setShowRenameModal(true)
     }
-  }, [content])
+  }
+
+  // 确认重命名
+  const handleConfirmRename = () => {
+    if (!renameDocId || !renameDocName.trim()) {
+      message.warning('请输入文档名称')
+      return
+    }
+    if (updateDocumentName(renameDocId, renameDocName.trim())) {
+      setDocuments(getDocuments())
+      setShowRenameModal(false)
+      setRenameDocId(null)
+      setRenameDocName('')
+      message.success('文档已重命名')
+    } else {
+      message.error('重命名失败')
+    }
+  }
 
   // 保存当前样式为新模版
   const handleSaveAsTemplate = () => {
@@ -276,6 +428,107 @@ const ContentEditor: React.FC = () => {
           }}>
             Markdown → 公众号格式化工具
           </div>
+          {/* 文档切换 */}
+          <Dropdown
+            menu={{
+              items: [
+                ...documents.map(doc => ({
+                  key: doc.id,
+                  label: (
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      padding: '4px 0',
+                      minWidth: 200
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+                        <span
+                          style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            backgroundColor: doc.id === currentDocumentId ? 'var(--emerald-primary)' : '#d1d5db',
+                            display: 'inline-block',
+                            flexShrink: 0
+                          }}
+                        />
+                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{doc.name}</span>
+                      </div>
+                      <Space size={4} onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          type="text"
+                          size="small"
+                          icon={<EditOutlined />}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleRenameDocument(doc.id)
+                          }}
+                          style={{ padding: '0 4px' }}
+                        />
+                        <Popconfirm
+                          title="确定要删除这篇文档吗？"
+                          onConfirm={(e) => {
+                            e?.stopPropagation()
+                            handleDeleteDocument(doc.id)
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Button
+                            type="text"
+                            size="small"
+                            icon={<DeleteOutlined />}
+                            danger
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ padding: '0 4px' }}
+                          />
+                        </Popconfirm>
+                      </Space>
+                    </div>
+                  ),
+                  onClick: () => handleSwitchDocument(doc.id)
+                })),
+                {
+                  type: 'divider'
+                },
+                {
+                  key: 'new',
+                  label: (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <PlusOutlined />
+                      <span>新建文档</span>
+                    </div>
+                  ),
+                  onClick: handleCreateDocument,
+                  disabled: !canCreateDocument()
+                }
+              ],
+              style: { minWidth: 240 }
+            }}
+            trigger={['click']}
+          >
+            <Button 
+              size="small" 
+              type="text" 
+              style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                color: currentDocumentId ? 'var(--emerald-primary)' : '#666',
+                fontWeight: currentDocumentId ? 500 : 400
+              }}
+            >
+              {currentDocumentId 
+                ? (() => {
+                    const doc = documents.find(d => d.id === currentDocumentId)
+                    return doc ? doc.name : '选择文档'
+                  })()
+                : '选择文档'
+              }
+              <DownOutlined style={{ fontSize: 10 }} />
+            </Button>
+          </Dropdown>
           <Dropdown
             menu={{
               items: [
@@ -492,6 +745,31 @@ const ContentEditor: React.FC = () => {
             onChange={(e) => setTemplateName(e.target.value)}
             placeholder="请输入模版名称"
             onPressEnter={handleConfirmSaveTemplate}
+            autoFocus
+          />
+        </div>
+      </Modal>
+
+      {/* 重命名文档弹窗 */}
+      <Modal
+        title="重命名文档"
+        open={showRenameModal}
+        onOk={handleConfirmRename}
+        onCancel={() => {
+          setShowRenameModal(false)
+          setRenameDocId(null)
+          setRenameDocName('')
+        }}
+        okText="保存"
+        cancelText="取消"
+      >
+        <div style={{ marginTop: 16 }}>
+          <div style={{ marginBottom: 8 }}>文档名称：</div>
+          <Input
+            value={renameDocName}
+            onChange={(e) => setRenameDocName(e.target.value)}
+            placeholder="请输入文档名称"
+            onPressEnter={handleConfirmRename}
             autoFocus
           />
         </div>
