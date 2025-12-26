@@ -469,11 +469,9 @@ const ContentEditor: React.FC = () => {
                         />
                         <Popconfirm
                           title="确定要删除这篇文档吗？"
-                          onConfirm={(e) => {
-                            e?.stopPropagation()
+                          onConfirm={(e?: React.MouseEvent<HTMLElement>) => {
                             handleDeleteDocument(doc.id)
                           }}
-                          onClick={(e) => e.stopPropagation()}
                         >
                           <Button
                             type="text"
