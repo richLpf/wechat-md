@@ -67,7 +67,7 @@ export const builtinTemplates: Template[] = [
 
 .bytemd-preview .markdown-body .wechat-article-code {
   background: #f5f5f5;
-  padding: 2px 6px;
+  padding: 14px 10px;
   border-radius: 3px;
   font-family: "Consolas", "Monaco", monospace;
   font-size: 0.9em;
@@ -75,6 +75,7 @@ export const builtinTemplates: Template[] = [
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  margin-bottom: 20px;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -160,7 +161,7 @@ export const builtinTemplates: Template[] = [
 
 .bytemd-preview .markdown-body .wechat-article-code {
   background: #ecf0f1;
-  padding: 2px 6px;
+  padding: 14px 10px;
   border-radius: 3px;
   font-family: "Consolas", "Monaco", monospace;
   font-size: 0.9em;
@@ -168,6 +169,7 @@ export const builtinTemplates: Template[] = [
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  margin-bottom: 20px;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -253,7 +255,7 @@ export const builtinTemplates: Template[] = [
 
 .bytemd-preview .markdown-body .wechat-article-code {
   background: #fff5f0;
-  padding: 2px 6px;
+  padding: 14px 10px;
   border-radius: 3px;
   font-family: "Consolas", "Monaco", monospace;
   font-size: 0.9em;
@@ -261,6 +263,7 @@ export const builtinTemplates: Template[] = [
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  margin-bottom: 20px;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -346,7 +349,7 @@ export const builtinTemplates: Template[] = [
 
 .bytemd-preview .markdown-body .wechat-article-code {
   background: #f4ecf7;
-  padding: 2px 6px;
+  padding: 14px 10px;
   border-radius: 3px;
   font-family: "Consolas", "Monaco", monospace;
   font-size: 0.9em;
@@ -354,6 +357,7 @@ export const builtinTemplates: Template[] = [
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  margin-bottom: 20px;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -462,20 +466,21 @@ export const builtinTemplates: Template[] = [
 .bytemd-preview .markdown-body .wechat-article-code {
   font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
   font-size: 14px;
-  background-color: #f6f8fa;
+  background-color: #f6f8fa;  
   color: #7c3aed;
-  padding: 2px 6px;
+  padding: 14px 10px;
   border-radius: 4px;
   border: 1px solid #eaecef;
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  margin-bottom: 20px;
 }
 
 .bytemd-preview .markdown-body pre.wechat-article-code-block {
   background-color: #2d2d2d;
   color: #ccc;
-  padding: 15px;
+  padding: 14px 10px;
   border-radius: 8px;
   overflow-x: auto;
   margin: 20px 0;
@@ -484,6 +489,7 @@ export const builtinTemplates: Template[] = [
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  margin-bottom: 20px;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -605,12 +611,13 @@ export const builtinTemplates: Template[] = [
   font-size: 14px;
   background-color: #f6f6f6;
   color: #7c3aed;
-  padding: 2px 4px;
+  padding: 14px 10px;
   border-radius: 3px;
   margin: 0 2px;
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  margin-bottom: 20px;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
