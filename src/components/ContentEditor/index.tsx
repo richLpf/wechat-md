@@ -59,9 +59,9 @@ const ContentEditor: React.FC = () => {
     const docs = getDocuments()
     if (docs.length === 0) {
       // 第一个文档的默认内容：Markdown 语法示例
-      const defaultContent = `# Markdown 语法示例
+      const defaultContent = `# Markdown 语法指南
 
-这是一篇 Markdown 语法示例文档，展示了常用的 Markdown 语法格式。
+欢迎使用 Markdown 编辑器！这是一篇 Markdown 语法示例文档，展示了常用的 Markdown 语法格式，让你可以直接看到效果。
 
 ## 标题
 
