@@ -469,7 +469,7 @@ const ContentEditor: React.FC = () => {
                         />
                         <Popconfirm
                           title="确定要删除这篇文档吗？"
-                          onConfirm={(e?: React.MouseEvent<HTMLElement>) => {
+                          onConfirm={() => {
                             handleDeleteDocument(doc.id)
                           }}
                         >
