@@ -58,7 +58,107 @@ const ContentEditor: React.FC = () => {
   useEffect(() => {
     const docs = getDocuments()
     if (docs.length === 0) {
-      const newDoc = createDocument('文档 1')
+      // 第一个文档的默认内容：Markdown 语法示例
+      const defaultContent = `# Markdown 语法示例
+
+这是一篇 Markdown 语法示例文档，展示了常用的 Markdown 语法格式。
+
+## 标题
+
+Markdown 支持 6 级标题，使用 \`#\` 符号：
+
+# 一级标题
+## 二级标题
+### 三级标题
+#### 四级标题
+##### 五级标题
+###### 六级标题
+
+## 文本样式
+
+- **粗体文本**：使用 \`**文本**\` 或 \`__文本__\`
+- *斜体文本*：使用 \`*文本*\` 或 \`_文本_\`
+- ***粗斜体***：使用 \`***文本***\`
+- ~~删除线~~：使用 \`~~文本~~\`
+
+## 列表
+
+### 无序列表
+
+- 项目一
+- 项目二
+  - 子项目 2.1
+  - 子项目 2.2
+- 项目三
+
+### 有序列表
+
+1. 第一项
+2. 第二项
+3. 第三项
+   1. 子项 3.1
+   2. 子项 3.2
+
+## 链接和图片
+
+- [链接文本](https://example.com)
+- ![图片描述](https://via.placeholder.com/300x200)
+
+## 代码
+
+### 行内代码
+
+使用反引号包裹：\`const x = 1;\`
+
+### 代码块
+
+\`\`\`javascript
+function greet(name) {
+  return \`Hello, \${name}!\`;
+}
+
+console.log(greet('World'));
+\`\`\`
+
+\`\`\`python
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+\`\`\`
+
+## 引用
+
+> 这是一段引用文本。
+> 
+> 可以包含多行内容。
+> 
+> — 引用来源
+
+## 表格
+
+| 列1 | 列2 | 列3 |
+|-----|-----|-----|
+| 内容1 | 内容2 | 内容3 |
+| 内容4 | 内容5 | 内容6 |
+
+## 分隔线
+
+---
+
+## 任务列表
+
+- [x] 已完成的任务
+- [ ] 未完成的任务
+- [ ] 另一个未完成的任务
+
+## 强调
+
+> **提示**：Markdown 是一种轻量级标记语言，可以快速编写格式化的文档。
+
+开始编辑这篇文档，体验 Markdown 的强大功能吧！`
+      
+      const newDoc = createDocument('第一个文档', defaultContent)
       setDocuments([newDoc])
       setCurrentDocumentIdState(newDoc.id)
       setSelectedTemplateId(getDefaultTemplate()?.id || null)

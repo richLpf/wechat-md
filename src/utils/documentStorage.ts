@@ -113,7 +113,7 @@ export const saveDocument = (document: Document): boolean => {
 /**
  * 创建新文档
  */
-export const createDocument = (name?: string): Document => {
+export const createDocument = (name?: string, content?: string): Document => {
   const documents = getDocuments()
   
   // 检查是否超过最大数量
@@ -124,7 +124,7 @@ export const createDocument = (name?: string): Document => {
   const newDocument: Document = {
     id: `doc-${Date.now()}`,
     name: name || `文档 ${documents.length + 1}`,
-    content: '',
+    content: content || '',
     selectedTemplateId: null,
     createdAt: Date.now(),
     updatedAt: Date.now()
