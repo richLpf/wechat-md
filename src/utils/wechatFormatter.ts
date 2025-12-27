@@ -9,7 +9,8 @@ import juice from 'juice'
 const ALLOWED_TAGS = new Set([
   'section', 'div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
   'ul', 'ol', 'li', 'blockquote', 'img', 'hr',
-  'strong', 'em', 'a', 'br', 'span', 'pre', 'code'
+  'strong', 'em', 'a', 'br', 'span', 'pre', 'code',
+  'table', 'tr', 'th', 'td'  // 添加表格标签，不包括 thead/tbody
 ])
 
 // 允许的代码块相关标签（用于微信公众号兼容格式）
@@ -156,6 +157,121 @@ const cleanElement = (element: Element, depth: number = 0): Element | null => {
       return newElement
     }
     // 其他 section 标签正常处理（递归处理子元素）
+  }
+  
+  // 处理表格结构
+  if (tagName === 'table') {
+    // table 内可能包含 tr 或 thead/tbody/tfoot（需要处理所有情况）
+    let hasValidTr = false
+    const allTrs: Element[] = []
+    
+    // 1. 先收集直接子元素中的 tr
+    const directTrs = Array.from(element.children).filter(child => child.tagName.toLowerCase() === 'tr')
+    allTrs.push(...directTrs)
+    
+    // 2. 收集 thead/tbody/tfoot 中的 tr（虽然理论上不应该有，但为了兼容性还是处理）
+    const thead = element.querySelector('thead')
+    if (thead) {
+      const theadTrs = Array.from(thead.children).filter(child => child.tagName.toLowerCase() === 'tr')
+      allTrs.push(...theadTrs)
+    }
+    
+    const tbody = element.querySelector('tbody')
+    if (tbody) {
+      const tbodyTrs = Array.from(tbody.children).filter(child => child.tagName.toLowerCase() === 'tr')
+      allTrs.push(...tbodyTrs)
+    }
+    
+    const tfoot = element.querySelector('tfoot')
+    if (tfoot) {
+      const tfootTrs = Array.from(tfoot.children).filter(child => child.tagName.toLowerCase() === 'tr')
+      allTrs.push(...tfootTrs)
+    }
+    
+    console.log(`清理表格: 找到 ${allTrs.length} 个 tr 子元素（直接: ${directTrs.length}, thead: ${thead ? thead.children.length : 0}, tbody: ${tbody ? tbody.children.length : 0}）`)
+    
+    // 3. 处理所有收集到的 tr
+    allTrs.forEach((child, index) => {
+      console.log(`  处理 tr ${index + 1}:`, child.outerHTML.substring(0, 200))
+      const cleaned = cleanElement(child, depth + 1)
+      if (cleaned) {
+        console.log(`  tr ${index + 1} 清理后保留，有 ${cleaned.children.length} 个子元素`)
+        newElement.appendChild(cleaned)
+        hasValidTr = true
+      } else {
+        console.warn(`  tr ${index + 1} 清理后返回 null，被丢弃`)
+      }
+    })
+    
+    // 如果没有有效的 tr，记录警告但保留表格（可能后续会添加内容）
+    if (!hasValidTr) {
+      console.warn('表格清理后没有有效的 tr 元素，但保留表格结构')
+    }
+    // 保留所有属性（包括 border, cellpadding, cellspacing, width）
+    Array.from(element.attributes).forEach(attr => {
+      newElement.setAttribute(attr.name, attr.value)
+    })
+    return newElement
+  }
+  
+  if (tagName === 'tr') {
+    // tr 内只能包含 th 或 td
+    const thsAndTds = Array.from(element.children).filter(child => {
+      const childTagName = child.tagName.toLowerCase()
+      return childTagName === 'th' || childTagName === 'td'
+    })
+    console.log(`清理 tr: 找到 ${thsAndTds.length} 个 th/td 子元素`)
+    thsAndTds.forEach((child, index) => {
+      const childTagName = child.tagName.toLowerCase()
+      console.log(`  处理 ${childTagName} ${index + 1}:`, child.outerHTML.substring(0, 100))
+      const cleaned = cleanElement(child, depth + 1)
+      if (cleaned) {
+        console.log(`  ${childTagName} ${index + 1} 清理后保留`)
+        newElement.appendChild(cleaned)
+      } else {
+        console.warn(`  ${childTagName} ${index + 1} 清理后返回 null，被丢弃`)
+      }
+    })
+    // 如果没有 th 或 td，返回 null（不保留空的 tr）
+    if (newElement.children.length === 0) {
+      console.warn('tr 清理后没有有效的 th/td 子元素，返回 null')
+      return null
+    }
+    // 保留所有属性（但不包括 style）
+    Array.from(element.attributes).forEach(attr => {
+      if (attr.name !== 'style') {
+        newElement.setAttribute(attr.name, attr.value)
+      }
+    })
+    return newElement
+  }
+  
+  if (tagName === 'th' || tagName === 'td') {
+    // th/td 内可以包含任何允许的内容
+    // 处理所有子节点（包括文本节点和元素节点）
+    Array.from(element.childNodes).forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        newElement.appendChild(node.cloneNode(true))
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const cleaned = cleanElement(node as Element, depth + 1)
+        if (cleaned) {
+          newElement.appendChild(cleaned)
+        }
+      }
+    })
+    // 如果没有子节点，保留文本内容（即使为空也保留，避免单元格丢失）
+    if (newElement.childNodes.length === 0) {
+      const text = element.textContent || ''
+      // 即使文本为空，也保留 th/td 元素（至少保留一个空格，避免单元格完全消失）
+      newElement.textContent = text.trim() || ' '
+    }
+    // 保留所有属性（但不包括 style）
+    Array.from(element.attributes).forEach(attr => {
+      if (attr.name !== 'style') {
+        newElement.setAttribute(attr.name, attr.value)
+      }
+    })
+    return newElement
   }
   
   if (tagName === 'code') {
@@ -307,6 +423,27 @@ const convertCodeBlockForWechat = (preElement: HTMLElement): HTMLElement => {
 }
 
 /**
+ * 从 style 字符串中提取背景色
+ */
+const extractBackgroundColor = (style: string): string | null => {
+  if (!style) return null
+  
+  // 匹配 background-color: #xxx; 或 background: #xxx;
+  const bgColorMatch = style.match(/background(?:-color)?\s*:\s*([^;]+)/i)
+  if (bgColorMatch) {
+    const color = bgColorMatch[1].trim()
+    // 如果是 rgb/rgba，转换为 hex（简化处理，只处理常见情况）
+    if (color.startsWith('rgb')) {
+      // 对于公众号，rgb 可能不被支持，返回 null
+      return null
+    }
+    // 返回颜色值（可能是 hex、颜色名等）
+    return color
+  }
+  return null
+}
+
+/**
  * 合并样式字符串
  * 将现有样式和新样式合并，新样式优先级更高
  * @param existingStyle 现有的 style 字符串
@@ -388,58 +525,148 @@ const convertAllCodeBlocks = (element: HTMLElement): void => {
  */
 const convertTablesForWechat = (element: HTMLElement): void => {
   const tables = element.querySelectorAll('table')
+  console.log(`convertTablesForWechat: 找到 ${tables.length} 个表格`)
   
-  tables.forEach((table) => {
+  tables.forEach((table, tableIndex) => {
+    console.log(`处理表格 ${tableIndex + 1}:`, table.outerHTML.substring(0, 300))
     const tableEl = table as HTMLElement
     
-    // 合并 table 样式：保留模板样式，添加公众号必需样式
-    const existingTableStyle = tableEl.getAttribute('style') || ''
-    const newTableStyle = 'border-collapse:collapse;width:100%;font-size:14px;'
-    tableEl.setAttribute('style', mergeStyles(existingTableStyle, newTableStyle))
+    // 1. 移除所有 CSS style
+    tableEl.removeAttribute('style')
     tableEl.removeAttribute('class')
     tableEl.removeAttribute('id')
     
-    // 处理所有 th
-    const ths = tableEl.querySelectorAll('th')
-    ths.forEach((th) => {
-      const thEl = th as HTMLElement
-      const existingThStyle = thEl.getAttribute('style') || ''
-      const newThStyle = 'border:1px solid #ddd;padding:6px;background:#f7f7f7;'
-      thEl.setAttribute('style', mergeStyles(existingThStyle, newThStyle))
-      thEl.removeAttribute('class')
-      thEl.removeAttribute('id')
-    })
+    // 2. 添加传统 HTML 属性
+    tableEl.setAttribute('border', '1')
+    tableEl.setAttribute('cellpadding', '6')
+    tableEl.setAttribute('cellspacing', '0')
+    tableEl.setAttribute('width', '100%')
     
-    // 处理所有 td
-    const tds = tableEl.querySelectorAll('td')
-    tds.forEach((td) => {
-      const tdEl = td as HTMLElement
-      const existingTdStyle = tdEl.getAttribute('style') || ''
-      const newTdStyle = 'border:1px solid #ddd;padding:6px;'
-      tdEl.setAttribute('style', mergeStyles(existingTdStyle, newTdStyle))
-      tdEl.removeAttribute('class')
-      tdEl.removeAttribute('id')
-    })
+    // 3. 移除 thead/tbody，将 tr 直接移到 table 下
+    const allTrs: HTMLElement[] = []
     
-    // 移除 thead/tbody 的 class 和 id（保留标签结构）
+    // 收集 thead 中的 tr（在移除之前先收集，避免引用丢失）
     const thead = tableEl.querySelector('thead')
     if (thead) {
-      thead.removeAttribute('class')
-      thead.removeAttribute('id')
-    }
-    const tbody = tableEl.querySelector('tbody')
-    if (tbody) {
-      tbody.removeAttribute('class')
-      tbody.removeAttribute('id')
+      // 使用 Array.from 确保获取实际的元素数组
+      const theadTrs = Array.from(thead.querySelectorAll('tr'))
+      theadTrs.forEach(tr => {
+        allTrs.push(tr as HTMLElement)
+        // 立即将 tr 移动到 table 下，避免在 remove 时丢失
+        tableEl.appendChild(tr)
+      })
+      thead.remove()
     }
     
-    // 处理 tr
-    const trs = tableEl.querySelectorAll('tr')
-    trs.forEach((tr) => {
-      const trEl = tr as HTMLElement
-      trEl.removeAttribute('class')
-      trEl.removeAttribute('id')
+    // 收集 tbody 中的 tr（在移除之前先收集，避免引用丢失）
+    const tbody = tableEl.querySelector('tbody')
+    if (tbody) {
+      // 使用 Array.from 确保获取实际的元素数组
+      const tbodyTrs = Array.from(tbody.querySelectorAll('tr'))
+      tbodyTrs.forEach(tr => {
+        allTrs.push(tr as HTMLElement)
+        // 立即将 tr 移动到 table 下，避免在 remove 时丢失
+        tableEl.appendChild(tr)
+      })
+      tbody.remove()
+    }
+    
+    // 收集直接子元素中的 tr（如果没有 thead/tbody）
+    if (allTrs.length === 0) {
+      const directTrs = Array.from(tableEl.children).filter(child => child.tagName.toLowerCase() === 'tr')
+      directTrs.forEach(tr => allTrs.push(tr as HTMLElement))
+    }
+    
+    // 4. 处理所有 tr（转换 th 为 td，提取背景色，移除 style）
+    allTrs.forEach(tr => {
+      // 检查 tr 是否有 th 或 td 内容（在移除属性之前检查，避免误删）
+      const hasContent = tr.querySelector('th, td') !== null
+      if (!hasContent) {
+        // 如果没有内容，移除这个 tr
+        console.warn('表格 tr 没有内容，将被移除:', tr.outerHTML)
+        tr.remove()
+        return
+      }
+      
+      // 提取 tr 的背景色（在移除 style 之前）
+      const trStyle = tr.getAttribute('style') || ''
+      const trBgColor = extractBackgroundColor(trStyle)
+      if (trBgColor) {
+        tr.setAttribute('bgcolor', trBgColor)
+      }
+      
+      // 移除 tr 的 style、class、id
+      tr.removeAttribute('style')
+      tr.removeAttribute('class')
+      tr.removeAttribute('id')
+      
+      // 处理 th：转换为 td，提取背景色，添加 strong 标签强调
+      const ths = tr.querySelectorAll('th')
+      ths.forEach(th => {
+        const thEl = th as HTMLElement
+        const thStyle = thEl.getAttribute('style') || ''
+        const thBgColor = extractBackgroundColor(thStyle)
+        
+        // 创建新的 td 元素
+        const td = document.createElement('td')
+        
+        // 设置背景色
+        if (thBgColor) {
+          td.setAttribute('bgcolor', thBgColor)
+        }
+        
+        // 保留其他属性（但不包括 style、class、id）
+        Array.from(thEl.attributes).forEach(attr => {
+          if (attr.name !== 'style' && attr.name !== 'class' && attr.name !== 'id') {
+            td.setAttribute(attr.name, attr.value)
+          }
+        })
+        
+        // 将 th 的内容包装在 strong 标签中（强调表头）
+        const content = thEl.textContent || thEl.innerHTML || ''
+        if (content.trim()) {
+          const strong = document.createElement('strong')
+          strong.textContent = content.trim()
+          td.appendChild(strong)
+        } else {
+          td.textContent = ' '
+        }
+        
+        // 替换 th 为 td
+        thEl.parentNode?.replaceChild(td, thEl)
+      })
+      
+      // 处理 td：提取背景色，移除 style
+      const tds = tr.querySelectorAll('td')
+      tds.forEach(td => {
+        const tdEl = td as HTMLElement
+        const tdStyle = tdEl.getAttribute('style') || ''
+        const tdBgColor = extractBackgroundColor(tdStyle)
+        
+        // 设置背景色
+        if (tdBgColor) {
+          tdEl.setAttribute('bgcolor', tdBgColor)
+        }
+        
+        // 移除 style、class、id
+        tdEl.removeAttribute('style')
+        tdEl.removeAttribute('class')
+        tdEl.removeAttribute('id')
+      })
     })
+    
+    // 5. 验证表格是否有有效的 tr
+    const finalTrs = tableEl.querySelectorAll('tr')
+    console.log(`表格转换完成，共有 ${finalTrs.length} 个 tr 元素`)
+    if (finalTrs.length === 0) {
+      console.warn('警告：表格转换后没有有效的 tr 元素，表格 HTML:', tableEl.outerHTML)
+    } else {
+      finalTrs.forEach((tr, index) => {
+        const thCount = tr.querySelectorAll('th').length
+        const tdCount = tr.querySelectorAll('td').length
+        console.log(`  tr ${index + 1}: ${thCount} 个 th, ${tdCount} 个 td`)
+      })
+    }
   })
 }
 
@@ -948,12 +1175,54 @@ ${articleElement.outerHTML}
   const tempDivForConvert = document.createElement('div')
   tempDivForConvert.innerHTML = result
   
+  // 调试：检查表格转换前的状态
+  const tablesBeforeConvert = tempDivForConvert.querySelectorAll('table')
+  console.log(`=== 表格转换前，共有 ${tablesBeforeConvert.length} 个表格 ===`)
+  tablesBeforeConvert.forEach((table, index) => {
+    console.log(`表格 ${index + 1} 转换前 HTML:`, table.outerHTML.substring(0, 500))
+    const thead = table.querySelector('thead')
+    const tbody = table.querySelector('tbody')
+    const directTrs = Array.from(table.children).filter(child => child.tagName.toLowerCase() === 'tr')
+    console.log(`  有 thead: ${!!thead}, 有 tbody: ${!!tbody}, 直接 tr: ${directTrs.length}`)
+    if (thead) {
+      const theadTrs = thead.querySelectorAll('tr')
+      console.log(`  thead 中有 ${theadTrs.length} 个 tr`)
+      theadTrs.forEach((tr, trIndex) => {
+        const ths = tr.querySelectorAll('th')
+        const tds = tr.querySelectorAll('td')
+        console.log(`    thead tr ${trIndex + 1}: ${ths.length} 个 th, ${tds.length} 个 td`)
+      })
+    }
+    if (tbody) {
+      const tbodyTrs = tbody.querySelectorAll('tr')
+      console.log(`  tbody 中有 ${tbodyTrs.length} 个 tr`)
+      tbodyTrs.forEach((tr, trIndex) => {
+        const ths = tr.querySelectorAll('th')
+        const tds = tr.querySelectorAll('td')
+        console.log(`    tbody tr ${trIndex + 1}: ${ths.length} 个 th, ${tds.length} 个 td`)
+      })
+    }
+  })
+  
   // 执行顺序很重要：
   // 1. 先转换标题（h1~h6 → p），因为其他转换可能依赖标题结构
   convertHeadingsForWechat(tempDivForConvert)
   
   // 2. 转换表格（每个 td/th 添加完整 inline style）
   convertTablesForWechat(tempDivForConvert)
+  
+  // 调试：检查表格转换后的状态
+  const tablesAfterConvert = tempDivForConvert.querySelectorAll('table')
+  console.log(`表格转换后，共有 ${tablesAfterConvert.length} 个表格`)
+  tablesAfterConvert.forEach((table, index) => {
+    const trs = table.querySelectorAll('tr')
+    console.log(`  表格 ${index + 1}: ${trs.length} 个 tr`)
+    trs.forEach((tr, trIndex) => {
+      const ths = tr.querySelectorAll('th')
+      const tds = tr.querySelectorAll('td')
+      console.log(`    tr ${trIndex + 1}: ${ths.length} 个 th, ${tds.length} 个 td`)
+    })
+  })
   
   // 3. 转换引用块（blockquote → section）
   convertBlockquotesForWechat(tempDivForConvert)
@@ -972,11 +1241,53 @@ ${articleElement.outerHTML}
   
   result = tempDivForConvert.innerHTML
   
+  // 调试：检查转换后的 result 中的表格状态
+  const tempCheckResult = document.createElement('div')
+  tempCheckResult.innerHTML = result
+  const tablesInResult = tempCheckResult.querySelectorAll('table')
+  console.log(`=== result 中的表格状态: 共有 ${tablesInResult.length} 个表格 ===`)
+  tablesInResult.forEach((table, index) => {
+    const trs = table.querySelectorAll('tr')
+    console.log(`  result 中表格 ${index + 1}: ${trs.length} 个 tr`)
+    console.log(`  result 中表格 ${index + 1} HTML:`, table.outerHTML.substring(0, 500))
+  })
+  
   // 现在清理 HTML（移除不允许的标签）
   // 注意：清理时需要保留 section 标签
   const tempDiv2 = document.createElement('div')
   tempDiv2.innerHTML = result
+  
+  // 调试：检查清理前的表格状态
+  const tablesBeforeClean = tempDiv2.querySelectorAll('table')
+  console.log(`=== 清理前，共有 ${tablesBeforeClean.length} 个表格 ===`)
+  tablesBeforeClean.forEach((table, index) => {
+    const trs = table.querySelectorAll('tr')
+    console.log(`  清理前表格 ${index + 1}: ${trs.length} 个 tr`)
+    trs.forEach((tr, trIndex) => {
+      const ths = tr.querySelectorAll('th')
+      const tds = tr.querySelectorAll('td')
+      console.log(`    清理前 tr ${trIndex + 1}: ${ths.length} 个 th, ${tds.length} 个 td`)
+      console.log(`    清理前 tr ${trIndex + 1} HTML:`, tr.outerHTML.substring(0, 200))
+    })
+  })
+  
   const cleanedElement = cleanElement(tempDiv2.firstElementChild || tempDiv2, 0)
+  
+  // 调试：检查清理后的表格状态
+  if (cleanedElement) {
+    const tempCheck = document.createElement('div')
+    tempCheck.appendChild(cleanedElement.cloneNode(true))
+    const tablesAfterClean = tempCheck.querySelectorAll('table')
+    console.log(`=== 清理后，共有 ${tablesAfterClean.length} 个表格 ===`)
+    tablesAfterClean.forEach((table, index) => {
+      const trs = table.querySelectorAll('tr')
+      console.log(`  清理后表格 ${index + 1}: ${trs.length} 个 tr`)
+      if (trs.length === 0) {
+        console.warn(`  警告：清理后表格 ${index + 1} 没有 tr 元素`)
+        console.warn(`  清理后表格 ${index + 1} HTML:`, table.outerHTML)
+      }
+    })
+  }
   if (!cleanedElement) {
     console.warn('清理后的元素为空')
     return ''
