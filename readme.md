@@ -165,6 +165,14 @@ wechat-md/
 - 保存为模板以便重复使用
 - 随时编辑和删除
 
+## ❤️ 功能更新
+
+- 新增多个样式模版
+- 支持本地同时最多保存5个文档
+- 增加反馈问题入口
+- 优化复制后在公众号显示效果
+  - 代码块【内容不显示、合并和多空行问题】
+
 ## ⚙️ 技术细节
 
 ### Google Analytics 配置
@@ -175,6 +183,21 @@ wechat-md/
 VITE_GA_ID=G-XXXXXXXXXX
 ```
 
+#### 运行测试
+
+```
+# 安装依赖
+pnpm install
+
+# 运行测试
+pnpm test
+
+# 运行测试（一次性）
+pnpm test:run
+
+# 打开测试 UI
+pnpm test:ui
+```
 #### GitHub Pages 部署
 Google Analytics 已直接配置在代码中，无需额外配置即可在 GitHub Pages 部署时自动启用。
 

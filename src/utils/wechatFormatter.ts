@@ -183,6 +183,42 @@ const cleanElement = (element: Element, depth: number = 0): Element | null => {
     }
   }
   
+  // 处理 p 标签：保留所有内容（包括文本和子元素如 br）
+  if (tagName === 'p') {
+    // 检查是否是分隔符
+    const style = element.getAttribute('style') || ''
+    if (style.includes('height:0') && style.includes('overflow:hidden')) {
+      // 这是分隔符，保留完整结构和属性
+      newElement.innerHTML = element.innerHTML || '&nbsp;'
+      Array.from(element.attributes).forEach(attr => {
+        newElement.setAttribute(attr.name, attr.value)
+      })
+      return newElement
+    }
+    
+    // 普通 p 标签：处理所有子节点（包括文本节点和元素节点）
+    Array.from(element.childNodes).forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        // 文本节点直接克隆
+        newElement.appendChild(node.cloneNode(true))
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        // 元素节点递归清理
+        const cleaned = cleanElement(node as Element, depth + 1)
+        if (cleaned) {
+          newElement.appendChild(cleaned)
+        }
+      }
+    })
+    
+    // 如果处理后没有内容，检查是否是空段落
+    if (newElement.children.length === 0 && !newElement.textContent?.trim()) {
+      // 完全空的段落，返回 null（除非是分隔符）
+      return null
+    }
+    
+    return newElement
+  }
+  
   // 其他标签：递归处理子元素
   Array.from(element.children).forEach(child => {
     const cleaned = cleanElement(child, depth + 1)
@@ -271,6 +307,54 @@ const convertCodeBlockForWechat = (preElement: HTMLElement): HTMLElement => {
 }
 
 /**
+ * 合并样式字符串
+ * 将现有样式和新样式合并，新样式优先级更高
+ * @param existingStyle 现有的 style 字符串
+ * @param newStyle 新的 style 字符串
+ * @returns 合并后的 style 字符串
+ */
+const mergeStyles = (existingStyle: string, newStyle: string): string => {
+  // 解析现有样式
+  const styleMap = new Map<string, string>()
+  if (existingStyle) {
+    existingStyle.split(';').forEach(style => {
+      const trimmed = style.trim()
+      if (trimmed) {
+        const colonIndex = trimmed.indexOf(':')
+        if (colonIndex > 0) {
+          const prop = trimmed.substring(0, colonIndex).trim()
+          const value = trimmed.substring(colonIndex + 1).trim()
+          styleMap.set(prop, value)
+        }
+      }
+    })
+  }
+  
+  // 解析新样式并覆盖现有样式
+  if (newStyle) {
+    newStyle.split(';').forEach(style => {
+      const trimmed = style.trim()
+      if (trimmed) {
+        const colonIndex = trimmed.indexOf(':')
+        if (colonIndex > 0) {
+          const prop = trimmed.substring(0, colonIndex).trim()
+          const value = trimmed.substring(colonIndex + 1).trim()
+          styleMap.set(prop, value) // 新样式覆盖旧样式
+        }
+      }
+    })
+  }
+  
+  // 构建合并后的样式字符串
+  const mergedStyles: string[] = []
+  styleMap.forEach((value, prop) => {
+    mergedStyles.push(`${prop}: ${value}`)
+  })
+  
+  return mergedStyles.join('; ')
+}
+
+/**
  * 转换所有代码块为微信公众号兼容格式
  */
 const convertAllCodeBlocks = (element: HTMLElement): void => {
@@ -295,6 +379,296 @@ const convertAllCodeBlocks = (element: HTMLElement): void => {
         converted.parentNode.insertBefore(separator, converted.nextSibling)
       }
     }
+  })
+}
+
+/**
+ * 转换表格为微信公众号兼容格式
+ * 每个 td/th 都必须有完整的 inline style
+ */
+const convertTablesForWechat = (element: HTMLElement): void => {
+  const tables = element.querySelectorAll('table')
+  
+  tables.forEach((table) => {
+    const tableEl = table as HTMLElement
+    
+    // 合并 table 样式：保留模板样式，添加公众号必需样式
+    const existingTableStyle = tableEl.getAttribute('style') || ''
+    const newTableStyle = 'border-collapse:collapse;width:100%;font-size:14px;'
+    tableEl.setAttribute('style', mergeStyles(existingTableStyle, newTableStyle))
+    tableEl.removeAttribute('class')
+    tableEl.removeAttribute('id')
+    
+    // 处理所有 th
+    const ths = tableEl.querySelectorAll('th')
+    ths.forEach((th) => {
+      const thEl = th as HTMLElement
+      const existingThStyle = thEl.getAttribute('style') || ''
+      const newThStyle = 'border:1px solid #ddd;padding:6px;background:#f7f7f7;'
+      thEl.setAttribute('style', mergeStyles(existingThStyle, newThStyle))
+      thEl.removeAttribute('class')
+      thEl.removeAttribute('id')
+    })
+    
+    // 处理所有 td
+    const tds = tableEl.querySelectorAll('td')
+    tds.forEach((td) => {
+      const tdEl = td as HTMLElement
+      const existingTdStyle = tdEl.getAttribute('style') || ''
+      const newTdStyle = 'border:1px solid #ddd;padding:6px;'
+      tdEl.setAttribute('style', mergeStyles(existingTdStyle, newTdStyle))
+      tdEl.removeAttribute('class')
+      tdEl.removeAttribute('id')
+    })
+    
+    // 移除 thead/tbody 的 class 和 id（保留标签结构）
+    const thead = tableEl.querySelector('thead')
+    if (thead) {
+      thead.removeAttribute('class')
+      thead.removeAttribute('id')
+    }
+    const tbody = tableEl.querySelector('tbody')
+    if (tbody) {
+      tbody.removeAttribute('class')
+      tbody.removeAttribute('id')
+    }
+    
+    // 处理 tr
+    const trs = tableEl.querySelectorAll('tr')
+    trs.forEach((tr) => {
+      const trEl = tr as HTMLElement
+      trEl.removeAttribute('class')
+      trEl.removeAttribute('id')
+    })
+  })
+}
+
+/**
+ * 转换标题为 p 标签（h1~h6 → p）
+ */
+const convertHeadingsForWechat = (element: HTMLElement): void => {
+  const headings = element.querySelectorAll('h1, h2, h3, h4, h5, h6')
+  
+  const headingStyles: Record<string, string> = {
+    'h1': 'font-size:24px;font-weight:600;margin:16px 0 8px;',
+    'h2': 'font-size:20px;font-weight:600;margin:16px 0 8px;',
+    'h3': 'font-size:18px;font-weight:600;margin:16px 0 8px;',
+    'h4': 'font-size:16px;font-weight:600;margin:14px 0 8px;',
+    'h5': 'font-size:15px;font-weight:600;margin:12px 0 8px;',
+    'h6': 'font-size:14px;font-weight:600;margin:10px 0 8px;'
+  }
+  
+  headings.forEach((heading) => {
+    const headingEl = heading as HTMLElement
+    const tagName = headingEl.tagName.toLowerCase()
+    const newStyle = headingStyles[tagName] || headingStyles['h3']
+    
+    // 获取现有样式（juice 已转换的模板样式）
+    const existingStyle = headingEl.getAttribute('style') || ''
+    
+    // 合并样式：保留模板样式，添加公众号必需样式
+    const mergedStyle = mergeStyles(existingStyle, newStyle)
+    
+    // 创建新的 p 标签
+    const p = document.createElement('p')
+    p.setAttribute('style', mergedStyle)
+    p.innerHTML = headingEl.innerHTML
+    
+    // 替换原元素
+    if (headingEl.parentNode) {
+      headingEl.parentNode.replaceChild(p, headingEl)
+    }
+  })
+}
+
+/**
+ * 扁平化列表并添加 inline style
+ * 注意：根据测试用例，保持嵌套结构，只添加样式，不扁平化
+ */
+const flattenListsForWechat = (element: HTMLElement): void => {
+  // 处理所有 ul 和 ol
+  const allLists = Array.from(element.querySelectorAll('ul, ol'))
+  
+  allLists.forEach((list) => {
+    const listEl = list as HTMLElement
+    
+    // 合并列表样式：保留模板样式，添加公众号必需样式
+    const existingListStyle = listEl.getAttribute('style') || ''
+    const newListStyle = 'padding-left:20px;margin:8px 0;'
+    listEl.setAttribute('style', mergeStyles(existingListStyle, newListStyle))
+    listEl.removeAttribute('class')
+    listEl.removeAttribute('id')
+    
+    // 处理所有 li
+    const lis = Array.from(listEl.querySelectorAll('li'))
+    lis.forEach((li) => {
+      const liEl = li as HTMLElement
+      
+      // 合并 li 样式：保留模板样式，添加公众号必需样式
+      const existingLiStyle = liEl.getAttribute('style') || ''
+      const newLiStyle = 'margin:4px 0;'
+      liEl.setAttribute('style', mergeStyles(existingLiStyle, newLiStyle))
+      liEl.removeAttribute('class')
+      liEl.removeAttribute('id')
+    })
+  })
+}
+
+/**
+ * 获取元素在 DOM 树中的深度
+ */
+const getElementDepth = (element: Element): number => {
+  let depth = 0
+  let current: Element | null = element
+  while (current && current.parentElement) {
+    depth++
+    current = current.parentElement
+  }
+  return depth
+}
+
+/**
+ * 转换任务列表为伪任务列表
+ */
+const convertTaskListsForWechat = (element: HTMLElement): void => {
+  // 查找所有包含 checkbox 的 li
+  const taskListItems = element.querySelectorAll('li')
+  
+  taskListItems.forEach((li) => {
+    const liEl = li as HTMLElement
+    const checkbox = liEl.querySelector('input[type="checkbox"]')
+    
+    if (checkbox) {
+      const isChecked = (checkbox as HTMLInputElement).checked
+      const checkboxText = checkbox.textContent || ''
+      
+      // 获取 li 的文本内容（排除 checkbox）
+      let text = liEl.textContent || ''
+      // 移除 checkbox 相关的文本标记（如 [x] 或 [ ]）
+      text = text.replace(/^\s*\[[x\s]\]\s*/i, '').trim()
+      
+      // 创建新的文本内容
+      const taskIcon = isChecked ? '☑️' : '⬜'
+      const newText = `${taskIcon} ${text}`
+      
+      // 清空 li 内容并设置新文本
+      liEl.innerHTML = ''
+      liEl.textContent = newText
+      
+      // 设置 li 样式（移除 list-style，因为任务列表不需要圆点）
+      const existingStyle = liEl.getAttribute('style') || ''
+      if (!existingStyle.includes('list-style')) {
+        const mergedStyle = mergeStyles(existingStyle, 'list-style:none;')
+        liEl.setAttribute('style', mergedStyle)
+      }
+      
+      // 移除 checkbox
+      checkbox.remove()
+    } else {
+      // 检查文本中是否有 [x] 或 [ ] 标记
+      const text = liEl.textContent || ''
+      const taskMatch = text.match(/^\s*\[([x\s])\]\s*(.*)$/i)
+      
+      if (taskMatch) {
+        const isChecked = taskMatch[1].toLowerCase() === 'x'
+        const taskText = taskMatch[2]
+        const taskIcon = isChecked ? '☑️' : '⬜'
+        
+        liEl.textContent = `${taskIcon} ${taskText}`
+        
+        // 设置 li 样式
+        const existingStyle = liEl.getAttribute('style') || ''
+        if (!existingStyle.includes('list-style')) {
+          const mergedStyle = mergeStyles(existingStyle, 'list-style:none;')
+          liEl.setAttribute('style', mergedStyle)
+        }
+      }
+    }
+  })
+}
+
+/**
+ * 转换引用块为 section
+ */
+const convertBlockquotesForWechat = (element: HTMLElement): void => {
+  const blockquotes = element.querySelectorAll('blockquote')
+  
+  blockquotes.forEach((blockquote) => {
+    const blockquoteEl = blockquote as HTMLElement
+    
+    // 获取现有样式（juice 已转换的模板样式）
+    const existingStyle = blockquoteEl.getAttribute('style') || ''
+    const newStyle = 'border-left:4px solid #d0d7de;padding:8px 12px;background:#f8f9fa;margin:12px 0;font-size:14px;color:#555;'
+    
+    // 合并样式：保留模板样式，添加公众号必需样式
+    const mergedStyle = mergeStyles(existingStyle, newStyle)
+    
+    // 创建新的 section 标签
+    const section = document.createElement('section')
+    section.setAttribute('style', mergedStyle)
+    section.innerHTML = blockquoteEl.innerHTML
+    
+    // 替换原元素
+    if (blockquoteEl.parentNode) {
+      blockquoteEl.parentNode.replaceChild(section, blockquoteEl)
+    }
+  })
+}
+
+/**
+ * 转换行内代码为 span
+ */
+const convertInlineCodeForWechat = (element: HTMLElement): void => {
+  // 查找所有 code 标签，但排除在 pre 内的
+  const allCodes = element.querySelectorAll('code')
+  
+  allCodes.forEach((code) => {
+    const codeEl = code as HTMLElement
+    
+    // 检查是否在 pre 内
+    const parentPre = codeEl.closest('pre')
+    if (parentPre) {
+      // 在 pre 内，跳过（代码块已经单独处理）
+      return
+    }
+    
+    // 获取现有样式（juice 已转换的模板样式）
+    const existingStyle = codeEl.getAttribute('style') || ''
+    const newStyle = 'background:#f6f8fa;padding:2px 6px;border-radius:3px;font-family:Menlo,monospace;font-size:14px;'
+    
+    // 合并样式：保留模板样式，添加公众号必需样式
+    const mergedStyle = mergeStyles(existingStyle, newStyle)
+    
+    // 创建新的 span 标签
+    const span = document.createElement('span')
+    span.setAttribute('style', mergedStyle)
+    span.textContent = codeEl.textContent || ''
+    
+    // 替换原元素
+    if (codeEl.parentNode) {
+      codeEl.parentNode.replaceChild(span, codeEl)
+    }
+  })
+}
+
+/**
+ * 转换分割线
+ */
+const convertHrForWechat = (element: HTMLElement): void => {
+  const hrs = element.querySelectorAll('hr')
+  
+  hrs.forEach((hr) => {
+    const hrEl = hr as HTMLElement
+    
+    // 获取现有样式（juice 已转换的模板样式）
+    const existingStyle = hrEl.getAttribute('style') || ''
+    const newStyle = 'border:none;border-top:1px solid #ddd;margin:16px 0;'
+    
+    // 合并样式：保留模板样式，添加公众号必需样式
+    const mergedStyle = mergeStyles(existingStyle, newStyle)
+    hrEl.setAttribute('style', mergedStyle)
+    hrEl.removeAttribute('class')
+    hrEl.removeAttribute('id')
   })
 }
 
@@ -569,6 +943,34 @@ ${articleElement.outerHTML}
   tempDivForCode.innerHTML = result
   convertAllCodeBlocks(tempDivForCode)
   result = tempDivForCode.innerHTML
+  
+  // 应用所有公众号格式转换（在 juice 转换之后，清理之前）
+  const tempDivForConvert = document.createElement('div')
+  tempDivForConvert.innerHTML = result
+  
+  // 执行顺序很重要：
+  // 1. 先转换标题（h1~h6 → p），因为其他转换可能依赖标题结构
+  convertHeadingsForWechat(tempDivForConvert)
+  
+  // 2. 转换表格（每个 td/th 添加完整 inline style）
+  convertTablesForWechat(tempDivForConvert)
+  
+  // 3. 转换引用块（blockquote → section）
+  convertBlockquotesForWechat(tempDivForConvert)
+  
+  // 4. 转换行内代码（code → span，排除 pre 内的）
+  convertInlineCodeForWechat(tempDivForConvert)
+  
+  // 5. 转换分割线（hr 添加样式）
+  convertHrForWechat(tempDivForConvert)
+  
+  // 6. 扁平化列表并添加样式（在任务列表转换之前）
+  flattenListsForWechat(tempDivForConvert)
+  
+  // 7. 转换任务列表（checkbox → 伪任务列表）
+  convertTaskListsForWechat(tempDivForConvert)
+  
+  result = tempDivForConvert.innerHTML
   
   // 现在清理 HTML（移除不允许的标签）
   // 注意：清理时需要保留 section 标签
