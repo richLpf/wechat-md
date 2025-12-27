@@ -47,6 +47,10 @@ export const builtinTemplates: Template[] = [
   text-align: justify;
 }
 
+.bytemd-preview .markdown-body .wechat-article-paragraph:last-child {
+  margin-bottom: 0;
+}
+
 .bytemd-preview .markdown-body .wechat-article-blockquote {
   border-left: 3px solid #07c160;
   padding: 10px 15px;
@@ -119,23 +123,9 @@ export const builtinTemplates: Template[] = [
   overflow-x: auto;
 }
 
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
-  color: #d73a49;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
-  color: #032f62;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
-  color: #6a737d;
-  font-style: italic;
+/* 移除语法高亮颜色，让所有代码内容使用统一的颜色 */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs * {
+  color: inherit !important;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -199,6 +189,10 @@ export const builtinTemplates: Template[] = [
 .bytemd-preview .markdown-body .wechat-article-paragraph {
   margin: 12px 0;
   text-align: justify;
+}
+
+.bytemd-preview .markdown-body .wechat-article-paragraph:last-child {
+  margin-bottom: 0;
 }
 
 .bytemd-preview .markdown-body .wechat-article-blockquote {
@@ -273,23 +267,9 @@ export const builtinTemplates: Template[] = [
   overflow-x: auto;
 }
 
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
-  color: #d73a49;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
-  color: #032f62;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
-  color: #6a737d;
-  font-style: italic;
+/* 移除语法高亮颜色，让所有代码内容使用统一的颜色 */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs * {
+  color: inherit !important;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -353,6 +333,10 @@ export const builtinTemplates: Template[] = [
 .bytemd-preview .markdown-body .wechat-article-paragraph {
   margin: 12px 0;
   text-align: justify;
+}
+
+.bytemd-preview .markdown-body .wechat-article-paragraph:last-child {
+  margin-bottom: 0;
 }
 
 .bytemd-preview .markdown-body .wechat-article-blockquote {
@@ -427,23 +411,9 @@ export const builtinTemplates: Template[] = [
   overflow-x: auto;
 }
 
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
-  color: #d73a49;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
-  color: #032f62;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
-  color: #6a737d;
-  font-style: italic;
+/* 移除语法高亮颜色，让所有代码内容使用统一的颜色 */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs * {
+  color: inherit !important;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -507,6 +477,10 @@ export const builtinTemplates: Template[] = [
 .bytemd-preview .markdown-body .wechat-article-paragraph {
   margin: 12px 0;
   text-align: justify;
+}
+
+.bytemd-preview .markdown-body .wechat-article-paragraph:last-child {
+  margin-bottom: 0;
 }
 
 .bytemd-preview .markdown-body .wechat-article-blockquote {
@@ -581,23 +555,9 @@ export const builtinTemplates: Template[] = [
   overflow-x: auto;
 }
 
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
-  color: #d73a49;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
-  color: #032f62;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
-  color: #6a737d;
-  font-style: italic;
+/* 移除语法高亮颜色，让所有代码内容使用统一的颜色 */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs * {
+  color: inherit !important;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -672,6 +632,10 @@ export const builtinTemplates: Template[] = [
   color: #3f3f3f;
   margin-bottom: 20px;
   text-align: justify;
+}
+
+.bytemd-preview .markdown-body .wechat-article-paragraph:last-child {
+  margin-bottom: 0;
 }
 
 .bytemd-preview .markdown-body .wechat-article-blockquote {
@@ -750,23 +714,9 @@ export const builtinTemplates: Template[] = [
   overflow-x: auto;
 }
 
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
-  color: #c792ea;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
-  color: #c3e88d;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
-  color: #546e7a;
-  font-style: italic;
+/* 移除语法高亮颜色，让所有代码内容使用统一的颜色 */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs * {
+  color: inherit !important;
 }
 
 .bytemd-preview .markdown-body pre.wechat-article-code-block code {
@@ -786,23 +736,9 @@ export const builtinTemplates: Template[] = [
   overflow-x: auto;
 }
 
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
-  color: #d73a49;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
-  color: #032f62;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
-  color: #6a737d;
-  font-style: italic;
+/* 移除语法高亮颜色，让所有代码内容使用统一的颜色 */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs * {
+  color: inherit !important;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {
@@ -899,6 +835,10 @@ export const builtinTemplates: Template[] = [
   text-align: justify;
 }
 
+.bytemd-preview .markdown-body .wechat-article-paragraph:last-child {
+  margin-bottom: 0;
+}
+
 .bytemd-preview .markdown-body .wechat-article-blockquote {
   margin: 20px 0;
   padding: 12px 16px;
@@ -975,23 +915,9 @@ export const builtinTemplates: Template[] = [
   overflow-x: auto;
 }
 
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-keyword,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-selector-tag,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-built_in,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-name {
-  color: #d73a49;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-string,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-title,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-section {
-  color: #032f62;
-}
-
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-comment,
-.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs-quote {
-  color: #6a737d;
-  font-style: italic;
+/* 移除语法高亮颜色，让所有代码内容使用统一的颜色 */
+.bytemd-preview .markdown-body pre.wechat-article-code-block .hljs * {
+  color: inherit !important;
 }
 
 .bytemd-preview .markdown-body .wechat-article-table {

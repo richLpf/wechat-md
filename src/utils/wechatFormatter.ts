@@ -12,6 +12,9 @@ const ALLOWED_TAGS = new Set([
   'strong', 'em', 'a', 'br', 'span', 'pre', 'code'
 ])
 
+// 允许的代码块相关标签（用于微信公众号兼容格式）
+const CODE_BLOCK_ALLOWED_TAGS = new Set(['section', 'pre', 'code', 'span'])
+
 /**
  * 清理和验证 HTML 元素（保留原有结构，只清理不允许的内容）
  */
@@ -93,7 +96,9 @@ const cleanElement = (element: Element, depth: number = 0): Element | null => {
   }
   
   if (tagName === 'pre') {
-    // pre 内可以包含 code 标签，也可以直接包含文本
+    // 普通 pre 标签处理：pre 内可以包含 code 标签，也可以直接包含文本
+    
+    // 普通 pre 标签处理：pre 内可以包含 code 标签，也可以直接包含文本
     Array.from(element.children).forEach(child => {
       const childTagName = child.tagName.toLowerCase()
       if (childTagName === 'code') {
@@ -125,8 +130,36 @@ const cleanElement = (element: Element, depth: number = 0): Element | null => {
     return newElement
   }
   
+  // 处理微信公众号格式的代码块 section
+  if (tagName === 'section') {
+    // 检查是否是代码块（通过 style 属性判断，包含 background:#f6f8fa）
+    const style = element.getAttribute('style') || ''
+    if (style.includes('background:#f6f8fa') || style.includes('background: #f6f8fa')) {
+      // 这是代码块 section，保留整个结构和所有属性
+      // 保留所有子元素（外层 div 和内层 div）
+      Array.from(element.children).forEach(child => {
+        if (child.tagName.toLowerCase() === 'div') {
+          const cleaned = cleanElement(child, depth + 1)
+          if (cleaned) {
+            newElement.appendChild(cleaned)
+          } else {
+            // 如果清理失败，直接克隆（保留原始结构）
+            const cloned = child.cloneNode(true) as HTMLElement
+            newElement.appendChild(cloned)
+          }
+        }
+      })
+      // 保留所有属性（包括 style）
+      Array.from(element.attributes).forEach(attr => {
+        newElement.setAttribute(attr.name, attr.value)
+      })
+      return newElement
+    }
+    // 其他 section 标签正常处理（递归处理子元素）
+  }
+  
   if (tagName === 'code') {
-    // code 标签保留所有文本内容，不处理子元素（因为代码块中的内容应该原样保留）
+    // 普通 code 标签：保留所有文本内容，不处理子元素（因为代码块中的内容应该原样保留）
     const text = element.textContent || ''
     if (text.trim()) {
       newElement.textContent = text.trim()
@@ -134,6 +167,19 @@ const cleanElement = (element: Element, depth: number = 0): Element | null => {
     } else {
       // 如果没有文本内容，返回 null
       return null
+    }
+  }
+  
+  // 处理分隔符 p 标签（代码块后的分隔符）
+  if (tagName === 'p') {
+    const style = element.getAttribute('style') || ''
+    if (style.includes('height:0') && style.includes('overflow:hidden')) {
+      // 这是分隔符，保留完整结构和属性
+      newElement.innerHTML = element.innerHTML || '&nbsp;'
+      Array.from(element.attributes).forEach(attr => {
+        newElement.setAttribute(attr.name, attr.value)
+      })
+      return newElement
     }
   }
   
@@ -151,14 +197,105 @@ const cleanElement = (element: Element, depth: number = 0): Element | null => {
     if (text.trim()) {
       newElement.textContent = text.trim()
     } else {
-      // 如果既没有子元素也没有文本，返回 null（除了自闭合标签）
+      // 如果既没有子元素也没有文本，返回 null（除了自闭合标签和分隔符）
       if (!['br', 'hr', 'img'].includes(tagName)) {
+        // 检查是否是分隔符 p
+        if (tagName === 'p') {
+          const style = element.getAttribute('style') || ''
+          if (style.includes('height:0') && style.includes('overflow:hidden')) {
+            // 分隔符即使内容为空也保留
+            newElement.innerHTML = '&nbsp;'
+            Array.from(element.attributes).forEach(attr => {
+              newElement.setAttribute(attr.name, attr.value)
+            })
+            return newElement
+          }
+        }
         return null
       }
     }
   }
   
   return newElement
+}
+
+/**
+ * 转换代码块为微信公众号兼容格式
+ */
+const convertCodeBlockForWechat = (preElement: HTMLElement): HTMLElement => {
+  // 创建外层 section
+  const section = document.createElement('section')
+  
+  // 获取代码内容
+  // 优先从 code 标签获取，如果没有则从 pre 标签获取
+  // 使用 textContent 可以获取所有嵌套元素的文本内容（包括 highlight.js 处理后的内容）
+  const codeElement = preElement.querySelector('code')
+  let codeText = ''
+  if (codeElement) {
+    // 获取 code 元素及其所有子元素的文本内容
+    codeText = codeElement.textContent || codeElement.innerText || ''
+  } else {
+    // 如果没有 code 元素，直接从 pre 元素获取
+    codeText = preElement.textContent || preElement.innerText || ''
+  }
+  
+  // 如果仍然为空，尝试从所有子元素获取
+  if (!codeText && preElement.children.length > 0) {
+    codeText = Array.from(preElement.children)
+      .map(child => child.textContent || child.innerText || '')
+      .join('\n')
+  }
+  
+  // 设置 section 的样式
+  section.setAttribute('style', 'background:#f6f8fa;padding:12px;border-radius:6px;margin:16px 0;')
+  
+  // 创建外层 div 容器
+  const outerDiv = document.createElement('div')
+  outerDiv.setAttribute('style', 'font-family:Menlo,monospace;font-size:14px;line-height:1.4;')
+  
+  // 按行分割代码，每行用内层 <div> 标签包裹
+  const lines = codeText.split('\n')
+  lines.forEach((line) => {
+    const innerDiv = document.createElement('div')
+    if (line === '') {
+      // 空行用 &nbsp; 表示
+      innerDiv.innerHTML = '&nbsp;'
+    } else {
+      innerDiv.textContent = line
+    }
+    outerDiv.appendChild(innerDiv)
+  })
+  
+  section.appendChild(outerDiv)
+  return section
+}
+
+/**
+ * 转换所有代码块为微信公众号兼容格式
+ */
+const convertAllCodeBlocks = (element: HTMLElement): void => {
+  // 查找所有 pre.wechat-article-code-block 元素
+  const codeBlocks = element.querySelectorAll('pre.wechat-article-code-block')
+  
+  codeBlocks.forEach((preBlock) => {
+    const pre = preBlock as HTMLElement
+    const converted = convertCodeBlockForWechat(pre)
+    
+    // 替换原元素
+    if (pre.parentNode) {
+      pre.parentNode.replaceChild(converted, pre)
+      
+      // 在代码块后添加分隔符，阻止代码块合并
+      const separator = document.createElement('p')
+      separator.setAttribute('style', 'margin:0;height:0;overflow:hidden;')
+      separator.innerHTML = '&nbsp;'
+      
+      // 插入分隔符
+      if (converted.parentNode) {
+        converted.parentNode.insertBefore(separator, converted.nextSibling)
+      }
+    }
+  })
 }
 
 /**
@@ -170,12 +307,51 @@ const applySpecialRules = (element: HTMLElement): void => {
   const styles: string[] = []
   
   // 特殊规则：所有 <p> 内文本对齐 justify，letter-spacing 0.5px
+  // 但是代码块中的 p 标签（margin:0）不需要这些样式
   if (tagName === 'p') {
-    if (!existingStyle.includes('text-align')) {
-      styles.push('text-align: justify')
+    // 检查是否是代码块中的 p（通过父元素或 style 属性判断）
+    const parent = element.parentElement
+    const isCodeBlockP = parent && parent.tagName.toLowerCase() === 'section' && 
+      ((parent.getAttribute('style') || '').includes('background:#f6f8fa') || (parent.getAttribute('style') || '').includes('background: #f6f8fa'))
+    
+    // 如果 p 标签的 style 包含 font-family:Menlo 或 font-family:monospace，说明是代码块中的 p
+    const isCodeP = existingStyle.includes('font-family:Menlo') || existingStyle.includes('font-family: monospace') || 
+      (existingStyle.includes('margin:0') && existingStyle.includes('font-family'))
+    
+    // 检查是否是分隔符（height:0;overflow:hidden）
+    const isSeparator = existingStyle.includes('height:0') && existingStyle.includes('overflow:hidden')
+    
+    if (!isCodeBlockP && !isCodeP && !isSeparator) {
+      if (!existingStyle.includes('text-align')) {
+        styles.push('text-align: justify')
+      }
+      if (!existingStyle.includes('letter-spacing')) {
+        styles.push('letter-spacing: 0.5px')
+      }
     }
-    if (!existingStyle.includes('letter-spacing')) {
-      styles.push('letter-spacing: 0.5px')
+  }
+  
+  // 特殊规则：代码块中的 div 不需要应用特殊样式
+  if (tagName === 'div') {
+    // 检查是否是代码块中的 div（通过父元素判断）
+    const parent = element.parentElement
+    if (parent) {
+      // 检查父元素是否是代码块 section
+      if (parent.tagName.toLowerCase() === 'section') {
+        const parentStyle = parent.getAttribute('style') || ''
+        if (parentStyle.includes('background:#f6f8fa') || parentStyle.includes('background: #f6f8fa')) {
+          // 这是代码块中的 div，不应用特殊规则
+          return
+        }
+      }
+      // 检查父元素是否是代码块的外层 div（包含 font-family:Menlo）
+      if (parent.tagName.toLowerCase() === 'div') {
+        const parentStyle = parent.getAttribute('style') || ''
+        if (parentStyle.includes('font-family:Menlo') || parentStyle.includes('font-family: monospace')) {
+          // 这是代码块中的内层 div，不应用特殊规则
+          return
+        }
+      }
     }
   }
   
@@ -388,7 +564,14 @@ ${articleElement.outerHTML}
     result = articleElement.outerHTML
   }
   
+  // 转换代码块为微信公众号兼容格式（在清理之前）
+  const tempDivForCode = document.createElement('div')
+  tempDivForCode.innerHTML = result
+  convertAllCodeBlocks(tempDivForCode)
+  result = tempDivForCode.innerHTML
+  
   // 现在清理 HTML（移除不允许的标签）
+  // 注意：清理时需要保留 section 标签
   const tempDiv2 = document.createElement('div')
   tempDiv2.innerHTML = result
   const cleanedElement = cleanElement(tempDiv2.firstElementChild || tempDiv2, 0)
