@@ -14,7 +14,7 @@ const ALLOWED_TAGS = new Set([
 ])
 
 // 允许的代码块相关标签（用于微信公众号兼容格式）
-const CODE_BLOCK_ALLOWED_TAGS = new Set(['section', 'pre', 'code', 'span'])
+// const CODE_BLOCK_ALLOWED_TAGS = new Set(['section', 'pre', 'code', 'span'])
 
 /**
  * 清理和验证 HTML 元素（保留原有结构，只清理不允许的内容）
@@ -394,7 +394,10 @@ const convertCodeBlockForWechat = (preElement: HTMLElement): HTMLElement => {
   // 如果仍然为空，尝试从所有子元素获取
   if (!codeText && preElement.children.length > 0) {
     codeText = Array.from(preElement.children)
-      .map(child => child.textContent || child.innerText || '')
+      .map(child => {
+        const htmlEl = child as HTMLElement
+        return child.textContent || (htmlEl.innerText || '')
+      })
       .join('\n')
   }
   
@@ -744,15 +747,15 @@ const flattenListsForWechat = (element: HTMLElement): void => {
 /**
  * 获取元素在 DOM 树中的深度
  */
-const getElementDepth = (element: Element): number => {
-  let depth = 0
-  let current: Element | null = element
-  while (current && current.parentElement) {
-    depth++
-    current = current.parentElement
-  }
-  return depth
-}
+// const getElementDepth = (element: Element): number => {
+//   let depth = 0
+//   let current: Element | null = element
+//   while (current && current.parentElement) {
+//     depth++
+//     current = current.parentElement
+//   }
+//   return depth
+// }
 
 /**
  * 转换任务列表为伪任务列表
@@ -767,7 +770,7 @@ const convertTaskListsForWechat = (element: HTMLElement): void => {
     
     if (checkbox) {
       const isChecked = (checkbox as HTMLInputElement).checked
-      const checkboxText = checkbox.textContent || ''
+      // const checkboxText = checkbox.textContent || ''
       
       // 获取 li 的文本内容（排除 checkbox）
       let text = liEl.textContent || ''

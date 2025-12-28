@@ -126,7 +126,10 @@ ${articleElement.outerHTML}
 
     if (!codeText && pre.children.length > 0) {
       codeText = Array.from(pre.children)
-        .map(child => child.textContent || child.innerText || '')
+        .map(child => {
+          const htmlEl = child as HTMLElement
+          return child.textContent || (htmlEl.innerText || '')
+        })
         .join('\n')
     }
 
@@ -349,12 +352,12 @@ function cleanHtmlForTest(element: HTMLElement): string {
 /**
  * 工具函数：标准化 HTML 字符串用于比较
  */
-function normalizeHTML(html: string): string {
-  return html
-    .replace(/\s+/g, ' ')
-    .replace(/>\s+</g, '><')
-    .trim()
-}
+// function normalizeHTML(html: string): string {
+//   return html
+//     .replace(/\s+/g, ' ')
+//     .replace(/>\s+</g, '><')
+//     .trim()
+// }
 
 /**
  * 工具函数：统计特定标签数量
@@ -374,9 +377,9 @@ function hasSeparator(html: string): boolean {
 /**
  * 工具函数：获取代码块数量
  */
-function countCodeBlocks(html: string): number {
-  return countElements(html, 'section') - countElements(html.replace(/<section[^>]*background:#f6f8fa[^>]*>/gi, ''), 'section')
-}
+// function countCodeBlocks(html: string): number {
+//   return countElements(html, 'section') - countElements(html.replace(/<section[^>]*background:#f6f8fa[^>]*>/gi, ''), 'section')
+// }
 
 describe('微信公众号渲染回归测试', () => {
   describe('1. 代码块测试', () => {
@@ -646,7 +649,7 @@ console.log(greet('World'));</code></pre>
       expect(result).toContain('第二行')
       
       // 断言：br 标签存在（如果允许）或内容被正确分割
-      const brCount = countElements(result, 'br')
+      // const brCount = countElements(result, 'br')
       // br 可能被保留或转换为其他格式，但内容不应该丢失
       expect(result).toContain('第一行')
       expect(result).toContain('第二行')
